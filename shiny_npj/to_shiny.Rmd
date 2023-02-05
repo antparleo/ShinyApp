@@ -1,0 +1,55 @@
+---
+title: "Format data shiny"
+output: html_document
+date: "2023-02-05"
+author: Antonio Parraga Leo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load data
+#setwd('Documents/UCSF/shiny_npj/')
+metadata <- read.delim('metadata_train.csv', sep = ',', row.names = 1)
+metadata
+```
+```{r}
+table(metadata %>% filter(trimester == 1 & NIH.Racial.Category == "White" & 
+                            project%in%c('A','B','C','D')) %>% .$Type)
+
+count(metadata,NIH.Racial.Category) %>%
+   arrange(desc(NIH.Racial.Category)) %>%
+  mutate(prop = n / sum(.$n) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop )
+```
+
+```{r}
+diver <- read.delim('diversity_train.csv', sep = ',')
+diver
+
+corr <- round(cor(diver[-1]), 1)
+corr
+ggcorrplot::ggcorrplot(corr, hc.order = TRUE, type = "lower",
+     outline.col = "white", lab = TRUE,lab_col = 'white',
+     colors = c("#6D9EC1", "white", "#E46726"))
+```
+
+```{r}
+rownames(diver) <- diver$specimen
+diver <- diver[metadata$specimen,]
+diver_metadata <- cbind(diver,metadata[-1])
+
+ggpairs(data = diver_metadata, columns = c('shannon','inv_simpson'),
+        aes(colour = Type),
+        upper = list(continuous = wrap("cor", size = 6)))+
+      scale_fill_manual(labels = c('Preterm','Term'),
+                        values = c('#CBC3E3','grey')) +
+  scale_colour_manual(labels = c('Preterm','Term'),
+                        values = c('#CBC3E3','grey'))+
+  theme_bw()+
+  theme(strip.text.x = element_text(size = 20),
+           strip.text.y = element_text(size = 20))
+```
+
