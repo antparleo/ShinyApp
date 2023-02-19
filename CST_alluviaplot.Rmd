@@ -1,0 +1,165 @@
+---
+title: "CST visualization (train + stfd)"
+author: "Antonio Parraga Leo´"
+date: "12/5/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/Documents/UCSF/')
+knitr::opts_chunk$set(fig.width = 9, fig.height = 6, fig.align = "center")
+```
+
+```{r}
+library(ggalluvial)
+library(tidyverse)
+library(patchwork)
+library(ggpubr)
+```
+
+
+# Load data
+```{r}
+cst_alluvia <- read.delim('cst2alluvia_filtered.csv',
+                        sep = ',')
+cst_alluvia$trimester <- as.character(cst_alluvia$trimester)
+
+cst_alluvia %>% filter(delivery_wk < 37)
+
+```
+
+# Alluvia plot
+
+
+```{r}
+cst_alluvia_ept <- cst_alluvia %>% filter(delivery_wk < 32)
+```
+
+
+## Alluvia plot with row counts
+
+```{r, fig.height=6, fig.width=9}
+
+p1 <- ggplot(cst_alluvia[cst_alluvia$Type == "Term",],
+       aes(x = trimester, stratum = CST, alluvium = participant_id,
+           fill = CST, label = CST)) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+  geom_stratum() +
+  ggtitle("Term")+
+  theme_bw()+
+  theme(legend.position = "none")
+
+p2 <- ggplot(cst_alluvia[cst_alluvia$Type == "Preterm",],
+       aes(x = trimester, stratum = CST, alluvium = participant_id,
+           fill = CST, label = CST)) +
+  scale_fill_brewer(type = "qual", palette = "Set2") +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+  geom_stratum() +
+  ggtitle("Preterm")+
+  theme_bw() +
+  theme(legend.position = "none")
+
+p3 <- ggplot(cst_alluvia_ept,
+       aes(x = trimester, stratum = CST, alluvium = participant_id,
+           fill = CST, label = CST)) +
+  scale_fill_brewer(type = "qual", palette = "Set2") +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+  geom_stratum() +
+  theme(legend.position = "right") +
+  ggtitle("Early Preterm")+
+  theme_bw()
+
+png('alluvialplot_CST.png', units="in", width=10, height=6, res=600)
+
+ggarrange(p1, p2, p3, ncol=3, common.legend = TRUE, legend="right")
+
+dev.off()
+
+```
+
+
+```{r, fig.height=9, fig.width=15}
+df_term <- cst_alluvia[cst_alluvia$Type == "Term",]
+df_preterm <- cst_alluvia[cst_alluvia$Type == "Preterm",]
+
+
+to_plot_term <- df_term[,c("trimester","participant_id","CST")]
+term_freq <- to_plot_term %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
+term_freq <- term_freq %>% 
+  group_by(trimester) %>% 
+  mutate(pct = Freq / sum(Freq)*100)
+
+
+to_plot_preterm <- df_preterm[,c("trimester","participant_id","CST")]
+preterm_freq <- to_plot_preterm %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
+preterm_freq <- preterm_freq %>% 
+  group_by(trimester) %>% 
+  mutate(pct = Freq / sum(Freq)*100)
+
+to_plot_epreterm <- cst_alluvia_ept[,c("trimester","participant_id","CST")]
+epreterm_freq <- to_plot_epreterm %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
+epreterm_freq <- epreterm_freq %>% 
+  group_by(trimester) %>% 
+  mutate(pct = Freq / sum(Freq)*100)
+
+p1 <- ggplot(term_freq,
+       aes(x = trimester, stratum = CST, alluvium = participant_id,
+           fill = CST, label = CST, y = pct)) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+  geom_stratum() +
+  scale_x_discrete(breaks=c("1","2","3"),
+        labels=c("1 \n(n = 67)", "2 \n(n = 182)", "3 \n(n = 128)")) +
+  ggtitle("Term")+
+  theme_bw()+
+  ylab("Freq")+
+  theme(legend.position = "none", text = element_text(size = 20))
+
+p2 <- ggplot(preterm_freq,
+       aes(x = trimester, stratum = CST, alluvium = participant_id,
+           fill = CST, label = CST, y = pct)) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+  geom_stratum() +
+   scale_x_discrete(breaks=c("1","2","3"),
+        labels=c("1 \n(n = 43)", "2 \n(n = 88)", "3 \n(n = 75)")) +
+  ggtitle("Preterm")+
+  ylab("Freq")+
+  theme_bw()+
+  theme(legend.position = "none",text = element_text(size = 20))
+
+p3 <- ggplot(epreterm_freq,
+       aes(x = trimester, stratum = CST, alluvium = participant_id,
+           fill = CST, label = CST, y = pct)) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+  geom_stratum() +
+   scale_x_discrete(breaks=c("1","2","3"),
+        labels=c("1 \n(n = 9)", "2 \n(n = 21)", "3 \n(n = 13)")) +
+  ggtitle("Early preterm")+
+  ylab("Freq")+
+  theme_bw()+
+  theme(legend.position = "right",text = element_text(size = 20),
+        legend.text = element_text(size=15))
+
+tiff('alluvialplot_CST_normalised.tiff', units="in", width=12, height=6, res=600)
+ggarrange(p1, p2, p3, ncol=3, common.legend = TRUE, legend="right")
+dev.off()
+
+```
+
+```{r}
+to_plot <- df_term[,c("trimester","participant_id","CST")]
+prueba1 <- to_plot %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
+
+prueba2 <- prueba1 %>% 
+  group_by(trimester) %>% 
+  mutate(pct = Freq / sum(Freq)*100)
+
+count(df_term,trimester)
+count(df_preterm,trimester)
+count(cst_alluvia_ept,trimester)
+
+```

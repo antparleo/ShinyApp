@@ -1,0 +1,78 @@
+
+
+# Libraries ---------------------------------------------------------------
+
+library(tidyverse)
+library(GGally)
+library(ggpubr)
+library(reticulate)
+library(umap)
+library(RColorBrewer)
+library(stringr)
+
+
+# Load main tables --------------------------------------------------------
+
+# Metadata
+
+metadata_all <- read.csv('../Results/metadata_all.csv')
+
+
+# Diversity
+
+diversity_all <- read.csv('../Results/diversity_all.csv')
+
+
+# Phylotypes
+
+phylotypes <- read.csv('../Results/phylotypes_all.csv')
+phylotypes_umap <- read.csv('Pt5e_1.combined.pseudocounts.csv', row.names = 1)
+all(rownames(phylotypes_umap) %in%phylotypes$specimen) # TRUE
+
+phylotypes_umap <- phylotypes_umap[phylotypes$specimen,] # TRUE
+
+# Create final metadata ---------------------------------------------------
+
+all(phylotypes$specimen == diversity_all$specimen) # TRUE Same order
+rownames(metadata_all) <- metadata_all$specimen
+metadata <- metadata_all[phylotypes$specimen,]
+dim(metadata) # 3909
+
+all(metadata$specimen == diversity_all$specimen) # TRUE
+metadata %>% select(Type,Range,participant_id,project) %>% distinct() %>% count(project,Type)
+
+
+
+
+# Functions
+
+umap2plot <- function(df,phylotypes){
+  
+  to_plot <- phylotypes[df$specimen,]
+  
+  phylo_umap <- umap(d = to_plot,method = 'umap-learn',
+                     metric = 'braycurtis',
+                     n_neighbors = 45, n_components = 2,
+                     min_dist = 1, spread = 1.1,random_state = 6)
+  
+  umap_df <- phylo_umap$layout %>%
+    as.data.frame()%>%
+    rename(UMAP1="V1",
+           UMAP2="V2") %>%
+    mutate(specimen=rownames(to_plot)) %>%
+    inner_join(df, by='specimen')
+  
+  return(umap_df)
+}
+
+
+# Colors
+my_colors_race <- brewer.pal(6,'Dark2')
+names(my_colors_race) <- unique(metadata$NIH.Racial.Category)
+
+my_colors_project <- brewer.pal(12,'Paired')
+names(my_colors_project) <- unique(metadata$project)
+
+my_colors_type <- c('Term' = 'grey',
+                    'Preterm' = '#CBC3E3')
+
