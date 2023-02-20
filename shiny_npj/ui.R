@@ -31,6 +31,13 @@ ui <- dashboardPage(
                              'Preterm' = 'preterm',
                              'Early Preterm' = 'early'),
                          selected = 'term'),
+      selectInput("feature", "Select a feature:",
+                  choices =
+                    c('Trimester' = 'Trimester',
+                      'Race' = 'NIH.Racial.Category',
+                      'Type' = 'Type',
+                      'Age' = 'Range'),
+                  selected = 'Trimester'),
       
       
     menuItem("Metadata information", icon = icon("th"), tabName = "metadata",

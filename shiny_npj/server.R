@@ -87,13 +87,14 @@ server <- function(input, output, session) {
     
     input$start
     
-    plot <- data.frame(with(metadataInput(),table(project,NIH.Racial.Category)))
+    df <- metadataInput()
+    plot <- data.frame(table(df[,c('project',input$feature)]))
     
     isolate(ggplot(plot,
-           aes(x = project, fill = NIH.Racial.Category, y = Freq)) +
+           aes(x = project, fill = plot[,input$feature], y = Freq)) +
       geom_bar(position = 'fill', stat = 'identity', color = 'black') +
-      scale_fill_manual(values = my_colors_race) +
-      labs(fill = 'Project', y = 'No. Samples', x = '')+
+      scale_fill_manual(values = my_colors[[input$feature]]) +
+      labs(fill = input$feature, y = 'No. Samples', x = '')+
       theme_bw() + 
       theme(axis.text = element_text(size = 15),
             axis.title = element_text(size = 25),

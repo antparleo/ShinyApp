@@ -73,6 +73,19 @@ names(my_colors_race) <- unique(metadata$NIH.Racial.Category)
 my_colors_project <- brewer.pal(12,'Paired')
 names(my_colors_project) <- unique(metadata$project)
 
-my_colors_type <- c('Term' = 'grey',
-                    'Preterm' = '#CBC3E3')
+my_colors_age <- brewer.pal(5,'Dark2')
+names(my_colors_age) <- unique(metadata$Range)
 
+my_colors_trimester <- brewer.pal(5,'Dark2')
+names(my_colors_trimester) <- unique(metadata$Trimester)
+
+my_colors_type <- c('term' = 'grey',
+                    'preterm' = '#CBC3E3')
+
+my_colors = list(
+  'project' = my_colors_project,
+  'NIH.Racial.Category' = my_colors_race,
+  'Type' = my_colors_type,
+  'Range' = my_colors_age,
+  'Trimester' = my_colors_trimester
+)
