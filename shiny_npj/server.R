@@ -6,38 +6,41 @@ server <- function(input, output, session) {
   #   updateButton(session, "goButton", disabled = !input$goButton)
   # }))
   
-  TypeInput <- reactive({
-    
-    index <- ifelse(input$type == 'preterm',
-                    c('early', 'preterm'),
-                    input$type)
-    
-    metadata <- metadata %>% 
-      filter(Type %in% index)
-    
-  })
+  # TypeInput <- reactive({
+  #   
+  #   index <- ifelse(input$type == 'preterm',
+  #                   c('early', 'preterm'),
+  #                   input$type)
+  #   
+  #   metadata <- metadata %>% 
+  #     filter(Type %in% index)
+  #   
+  # })
   
   
   
   metadataInput <- reactive({
 
-    df <- TypeInput() %>%
+    df <- metadata %>%
       filter((Range %in% input$Age) &
                project%in%input$projects &
+               Type%in%input$type &
                NIH.Racial.Category %in% input$Race &
                Trimester %in% input$trimester)
 
   })
-  # 
-  # 
-  # cstInput <- reactive({
-  #   
-  #  cst_alluvia2 <- cst_alluvia %>% 
-  #              filter((age <= input$Age | age == 'Unknown') &
-  #                       project%in%input$projects & 
-  #                       NIH.Racial.Category %in% input$Race)
-  #   
-  # })
+
+
+  cstInput <- reactive({
+
+   cst_alluvia2 <- cst_alluvial %>%
+     filter((Range %in% input$Age) &
+              project%in%input$projects &
+              Type%in%input$type &
+              NIH.Racial.Category %in% input$Race &
+              Trimester %in% input$trimester)
+
+  })
   
   
   
@@ -45,11 +48,13 @@ server <- function(input, output, session) {
     
     input$start
     
-    isolate(ggplot(metadataInput(),
+    df <- metadataInput()
+    df <- distinct(df[,c('participant_id','Type')])
+    
+    isolate(ggplot(df,
            aes(x = Type, fill = Type)) +
       geom_bar(color = 'black') +
-      scale_fill_manual(labels = c('Preterm','Term'),
-                        values = c('#CBC3E3','grey'))+
+      scale_fill_manual(values = my_colors_type)+
       labs(fill = 'Type', y = 'Frequency', x = '')+
       theme_bw() + 
       theme(axis.text = element_text(size = 15),
@@ -88,11 +93,12 @@ server <- function(input, output, session) {
     input$start
     
     df <- metadataInput()
+    df <- distinct(df[,c('participant_id', 'project', input$feature)])
     plot <- data.frame(table(df[,c('project',input$feature)]))
     
     isolate(ggplot(plot,
            aes(x = project, fill = plot[,input$feature], y = Freq)) +
-      geom_bar(position = 'fill', stat = 'identity', color = 'black') +
+      geom_bar(position = 'stack', stat = 'identity', color = 'black') +
       scale_fill_manual(values = my_colors[[input$feature]]) +
       labs(fill = input$feature, y = 'No. Samples', x = '')+
       theme_bw() + 
@@ -105,160 +111,180 @@ server <- function(input, output, session) {
   
   
  
-  # output$cpDiversity <- renderPlot({
-  #   
-  #   input$start
-  #     
-  #     isolate(df <- md %>% 
-  #     filter((age <= input$Age | age == 'Unknown') &
-  #              project%in%input$projects & 
-  #              NIH.Racial.Category %in% input$Race &
-  #              trimester %in% input$trimester))
-  #   
-  #   to_plot <- diver %>% filter(specimen%in%md$specimen)
-  #   
-  #   rownames(to_plot) <- to_plot$specimen
-  #   to_plot <- to_plot[df$specimen,]
-  #   diver_md <- cbind(to_plot,df[-1])
-  #   
-  #   isolate(ggpairs(data = diver_md, columns = input$metrics,
-  #           aes(colour = Type),
-  #           upper = list(continuous = wrap("cor", size = 6)))+
-  #     scale_fill_manual(labels = c('Preterm','Term'),
-  #                       values = c('#CBC3E3','grey')) +
-  #     scale_colour_manual(labels = c('Preterm','Term'),
-  #                         values = c('#CBC3E3','grey'))+
-  #     theme_bw()+
-  #     theme(strip.text.x = element_text(size = 20),
-  #           strip.text.y = element_text(size = 20))
-  #   )
-  #   
-  #   
-  # })
-  # 
-  # 
-  # output$apCST <- renderPlot({
-  #   
-  #   cst_alluvia2 <- cstInput()
-  #   cst_alluvia_ept <- cst_alluvia2 %>% filter(delivery_wk < 32)
-  #   
-  #   df_term <- cst_alluvia2[cst_alluvia2$Type == "Term",]
-  #   df_preterm <- cst_alluvia2[cst_alluvia2$Type == "Preterm",]
-  #   
-  #   
-  #   to_plot_term <- df_term[,c("trimester","participant_id","CST")]
-  #   term_freq <- to_plot_term %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
-  #   term_freq <- term_freq %>% 
-  #     group_by(trimester) %>% 
-  #     mutate(pct = Freq / sum(Freq)*100)
-  #   
-  #   
-  #   to_plot_preterm <- df_preterm[,c("trimester","participant_id","CST")]
-  #   preterm_freq <- to_plot_preterm %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
-  #   preterm_freq <- preterm_freq %>% 
-  #     group_by(trimester) %>% 
-  #     mutate(pct = Freq / sum(Freq)*100)
-  #   
-  #   to_plot_epreterm <- cst_alluvia_ept[,c("trimester","participant_id","CST")]
-  #   epreterm_freq <- to_plot_epreterm %>% group_by(participant_id,trimester,CST) %>% summarise(Freq = n() )
-  #   epreterm_freq <- epreterm_freq %>% 
-  #     group_by(trimester) %>% 
-  #     mutate(pct = Freq / sum(Freq)*100)
-  #   
-  #   p1 <- ggplot(term_freq,
-  #                aes(x = trimester, stratum = CST, alluvium = participant_id,
-  #                    fill = CST, label = CST, y = pct)) +
-  #     scale_fill_brewer(palette = "Set2") +
-  #     geom_flow(stat = "alluvium", lode.guidance = "frontback") +
-  #     geom_stratum() +
-  #     scale_x_discrete(breaks=c("1","2","3"),
-  #                      labels=c("1 \n(n = 67)", "2 \n(n = 182)", "3 \n(n = 128)")) +
-  #     ggtitle("Term")+
-  #     theme_bw()+
-  #     ylab("Freq")+
-  #     theme(legend.position = "none", text = element_text(size = 20))
-  #   
-  #   p2 <- ggplot(preterm_freq,
-  #                aes(x = trimester, stratum = CST, alluvium = participant_id,
-  #                    fill = CST, label = CST, y = pct)) +
-  #     scale_fill_brewer(palette = "Set2") +
-  #     geom_flow(stat = "alluvium", lode.guidance = "frontback") +
-  #     geom_stratum() +
-  #     scale_x_discrete(breaks=c("1","2","3"),
-  #                      labels=c("1 \n(n = 43)", "2 \n(n = 88)", "3 \n(n = 75)")) +
-  #     ggtitle("Preterm")+
-  #     ylab("Freq")+
-  #     theme_bw()+
-  #     theme(legend.position = "none",text = element_text(size = 20))
-  #   
-  #   p3 <- ggplot(epreterm_freq,
-  #                aes(x = trimester, stratum = CST, alluvium = participant_id,
-  #                    fill = CST, label = CST, y = pct)) +
-  #     scale_fill_brewer(palette = "Set2") +
-  #     geom_flow(stat = "alluvium", lode.guidance = "frontback") +
-  #     geom_stratum() +
-  #     scale_x_discrete(breaks=c("1","2","3"),
-  #                      labels=c("1 \n(n = 9)", "2 \n(n = 21)", "3 \n(n = 13)")) +
-  #     ggtitle("Early preterm")+
-  #     ylab("Freq")+
-  #     theme_bw()+
-  #     theme(legend.position = "right",text = element_text(size = 20),
-  #           legend.text = element_text(size=15))
-  #   
-  #   ggarrange(p1, p2, p3, ncol=3, common.legend = TRUE, legend="right")
-  #   
-  # })
-  # 
-  # 
-  # umapInput <-  reactive({
-  #   
-  #   umap2plot(metadataInput(),phylotypes)
-  #   
-  # }) %>%
-  #   bindCache(metadataInput())
-  # 
-  # output$upPhylo <- renderPlot({
-  #   
-  #   input$start
-  #   
-  #   # df <- metadataInput()
-  #   # to_plot <- phylotypes[df$specimen,]
-  #   # 
-  #   # phylo_umap <- umap(d = to_plot,method = 'umap-learn',
-  #   #                    metric = 'braycurtis',
-  #   #                    n_neighbors = 45, n_components = 2,
-  #   #                    min_dist = 1, spread = 1.1,random_state = 6)
-  #   # 
-  #   # umap_df <- phylo_umap$layout %>%
-  #   #   as.data.frame()%>%
-  #   #   rename(UMAP1="V1",
-  #   #          UMAP2="V2") %>%
-  #   #   mutate(specimen=rownames(to_plot)) %>%
-  #   #   inner_join(df, by='specimen')
-  #   # 
-  #   # isolate(umap_df$Division <- umap_df[,input$divison])
-  #   
-  #   my_colors <- list('Type' = my_colors_type,
-  #                     'project' = my_colors_project)
-  #   isolate(toplot <- umapInput())
-  #   isolate(toplot$Division <- toplot[,input$division])
-  #   isolate(ggplot(toplot, aes(x = UMAP1, 
-  #                               y = UMAP2, 
-  #                               color = Division))+
-  #             geom_point()+
-  #             scale_color_manual(values = my_colors[[input$division]])+
-  #             labs(x = "UMAP1",
-  #                  y = "UMAP2",
-  #                  color = "")+
-  #             theme_bw() +
-  #     theme(legend.position = "bottom",text = element_text(size = 20),
-  #           legend.text = element_text(size=15)) +
-  #     guides(fill=guide_legend(nrow=3,byrow=TRUE),
-  #            shape = guide_legend(override.aes = list(size = 5)))) 
-  #   
-  #   
-  #   
-  # })
+  output$cpDiversity <- renderPlot({
+
+    input$start
+
+    md <- metadataInput()
+
+    to_plot <- diversity_all %>% filter(specimen%in%md[,'specimen'])
+
+    rownames(to_plot) <- to_plot$specimen
+    to_plot <- to_plot[md$specimen,]
+    diver_md <- cbind(to_plot,md[, -grep('specimen',colnames(md))])
+
+    isolate(ggpairs(data = diver_md, columns = input$metrics,
+            aes(color = diver_md[,input$feature]),
+            upper = list(continuous = wrap("cor", size = 6)))+
+       scale_fill_manual(values = my_colors[[input$feature]]) +
+      scale_color_manual(values = my_colors[[input$feature]]) +
+      theme_bw()+
+      theme(strip.text.x = element_text(size = 20),
+            strip.text.y = element_text(size = 20),
+            legend.position = 'bottom')
+    )
+
+
+  })
+  
+  
+  
+  output$vpDiversity <- renderPlot({
+    
+    input$start
+    
+    md <- metadataInput()
+    diver_md <- merge(x = md, y = diversity_all_long,
+                      by = 'specimen')
+    diver_md <- diver_md[diver_md$Metrics%in%input$metrics,]
+    isolate(ggplot(data = diver_md,
+                   aes(x = Metrics, y = Score,
+                                        fill = diver_md[,input$feature]))+
+              geom_violin()+
+              scale_fill_manual(values = my_colors[[input$feature]]) +
+              labs(fill = input$feature, y = 'Score')+
+              theme_bw() + 
+              theme(axis.text = element_text(size = 15),
+                    axis.title = element_text(size = 25),
+                    legend.text = element_text(size = 12),
+                    legend.title = element_text(size = 20))
+            )
+    
+    
+  })
+  
+
+
+  output$apCST <- renderPlot({
+
+    cst_alluvia2 <- cstInput()
+    cst_alluvia_ept <- cst_alluvia2 %>% filter(delivery_wk < 32)
+
+    df_term <- cst_alluvia2[cst_alluvia2$Type == "term",]
+    df_preterm <- cst_alluvia2[cst_alluvia2$Type == "preterm",]
+
+
+    to_plot_term <- df_term[,c("Trimester","participant_id","CST")]
+    term_freq <- to_plot_term %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
+    term_freq <- term_freq %>%
+      group_by(Trimester) %>%
+      mutate(pct = Freq / sum(Freq)*100)
+
+
+    to_plot_preterm <- df_preterm[,c("Trimester","participant_id","CST")]
+    preterm_freq <- to_plot_preterm %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
+    preterm_freq <- preterm_freq %>%
+      group_by(Trimester) %>%
+      mutate(pct = Freq / sum(Freq)*100)
+
+    to_plot_epreterm <- cst_alluvia_ept[,c("Trimester","participant_id","CST")]
+    epreterm_freq <- to_plot_epreterm %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
+    epreterm_freq <- epreterm_freq %>%
+      group_by(Trimester) %>%
+      mutate(pct = Freq / sum(Freq)*100)
+
+    p1 <- ggplot(term_freq,
+                 aes(x = Trimester, stratum = CST, alluvium = participant_id,
+                     fill = CST, label = CST, y = pct)) +
+      scale_fill_brewer(palette = "Set2") +
+      geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+      geom_stratum() +
+      scale_x_discrete(breaks=c("1","2","3"),
+                       labels=c("1 \n(n = 67)", "2 \n(n = 182)", "3 \n(n = 128)")) +
+      ggtitle("Term")+
+      theme_bw()+
+      ylab("Freq")+
+      theme(legend.position = "none", text = element_text(size = 20))
+
+    p2 <- ggplot(preterm_freq,
+                 aes(x = Trimester, stratum = CST, alluvium = participant_id,
+                     fill = CST, label = CST, y = pct)) +
+      scale_fill_brewer(palette = "Set2") +
+      geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+      geom_stratum() +
+      scale_x_discrete(breaks=c("1","2","3"),
+                       labels=c("1 \n(n = 43)", "2 \n(n = 88)", "3 \n(n = 75)")) +
+      ggtitle("Preterm")+
+      ylab("Freq")+
+      theme_bw()+
+      theme(legend.position = "none",text = element_text(size = 20))
+
+    p3 <- ggplot(epreterm_freq,
+                 aes(x = Trimester, stratum = CST, alluvium = participant_id,
+                     fill = CST, label = CST, y = pct)) +
+      scale_fill_brewer(palette = "Set2") +
+      geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+      geom_stratum() +
+      scale_x_discrete(breaks=c("1","2","3"),
+                       labels=c("1 \n(n = 9)", "2 \n(n = 21)", "3 \n(n = 13)")) +
+      ggtitle("Early preterm")+
+      ylab("Freq")+
+      theme_bw()+
+      theme(legend.position = "right",text = element_text(size = 20),
+            legend.text = element_text(size=15))
+
+    ggarrange(p1, p2, p3, ncol=3, common.legend = TRUE, legend="right")
+
+  })
+
+
+  umapInput <-  reactive({
+
+    umap2plot(metadataInput(),phylotypes_umap)
+
+  }) %>%
+    bindCache(metadataInput())
+
+  output$upPhylo <- renderPlot({
+
+    input$start
+
+    # df <- metadataInput()
+    # to_plot <- phylotypes[df$specimen,]
+    #
+    # phylo_umap <- umap(d = to_plot,method = 'umap-learn',
+    #                    metric = 'braycurtis',
+    #                    n_neighbors = 45, n_components = 2,
+    #                    min_dist = 1, spread = 1.1,random_state = 6)
+    #
+    # umap_df <- phylo_umap$layout %>%
+    #   as.data.frame()%>%
+    #   rename(UMAP1="V1",
+    #          UMAP2="V2") %>%
+    #   mutate(specimen=rownames(to_plot)) %>%
+    #   inner_join(df, by='specimen')
+    #
+    # isolate(umap_df$Division <- umap_df[,input$divison])
+
+    isolate(toplot <- umapInput())
+    # isolate(toplot$Division <- toplot[,input$division])
+    isolate(ggplot(toplot, aes(x = UMAP1,
+                                y = UMAP2,
+                                color = toplot[,input$feature]))+
+              geom_point()+
+              scale_color_manual(values = my_colors[[input$feature]])+
+              labs(x = "UMAP1",
+                   y = "UMAP2",
+                   color = "")+
+              theme_bw() +
+      theme(legend.position = "bottom",text = element_text(size = 20),
+            legend.text = element_text(size=15)) +
+      guides(fill=guide_legend(nrow=3,byrow=TRUE),
+             shape = guide_legend(override.aes = list(size = 5))))
+
+
+
+  })
   
   
 }

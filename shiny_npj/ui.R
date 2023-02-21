@@ -25,7 +25,7 @@ ui <- dashboardPage(
     
     # Select Type
       
-      selectInput("type", "Choose the category",
+      checkboxGroupInput("type", "Choose the category",
                          choices =
                            c('Term' = 'term',
                              'Preterm' = 'preterm',
@@ -37,7 +37,7 @@ ui <- dashboardPage(
                       'Race' = 'NIH.Racial.Category',
                       'Type' = 'Type',
                       'Age' = 'Range'),
-                  selected = 'Trimester'),
+                  selected = 'Range'),
       
       
     menuItem("Metadata information", icon = icon("th"), tabName = "metadata",
@@ -152,6 +152,14 @@ ui <- dashboardPage(
         plotOutput("cpDiversity", height = 800)
     ),
     
+    # Violin Plot diversity
+    
+    box(width = 12,
+        title = "Distribution", solidHeader = TRUE,
+        collapsible = TRUE, background = "purple",
+        plotOutput("vpDiversity", height = 400)
+    ),
+    
     # Alluvial Plot CST
     
     box(width = 6,
@@ -173,8 +181,9 @@ ui <- dashboardPage(
     tabBox(
       title = "First tabBox",
       # The id lets us use input$tabset1 on the server to find the current tab
-      id = "tabset1", height = "250px",
-      tabPanel("Tab1", "First tab content"),
+      id = "tabset1", height = "800px",
+      tabPanel("Tab1", "First tab content",
+    ),
       tabPanel("Tab2", "Tab content 2")
     ),
     

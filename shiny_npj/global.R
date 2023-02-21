@@ -9,7 +9,7 @@ library(reticulate)
 library(umap)
 library(RColorBrewer)
 library(stringr)
-
+library(reshape2)
 
 # Load main tables --------------------------------------------------------
 
@@ -21,7 +21,8 @@ metadata_all <- read.csv('../Results/metadata_all.csv')
 # Diversity
 
 diversity_all <- read.csv('../Results/diversity_all.csv')
-
+diversity_all_long <- melt(diversity_all,variable.name = 'Metrics',
+                           value.name = 'Score', id.vars = 'specimen')
 
 # Phylotypes
 
@@ -31,11 +32,16 @@ all(rownames(phylotypes_umap) %in%phylotypes$specimen) # TRUE
 
 phylotypes_umap <- phylotypes_umap[phylotypes$specimen,] # TRUE
 
+# CST
+
+cst_alluvial <- read.csv('../Results/cst2alluvia.csv')
+
 # Create final metadata ---------------------------------------------------
 
 all(phylotypes$specimen == diversity_all$specimen) # TRUE Same order
 rownames(metadata_all) <- metadata_all$specimen
 metadata <- metadata_all[phylotypes$specimen,]
+metadata$Trimester <- as.character(metadata$Trimester)
 dim(metadata) # 3909
 
 all(metadata$specimen == diversity_all$specimen) # TRUE
@@ -80,7 +86,8 @@ my_colors_trimester <- brewer.pal(5,'Dark2')
 names(my_colors_trimester) <- unique(metadata$Trimester)
 
 my_colors_type <- c('term' = 'grey',
-                    'preterm' = '#CBC3E3')
+                    'preterm' = '#72467c',
+                    'early' = '#8000FF')
 
 my_colors = list(
   'project' = my_colors_project,
