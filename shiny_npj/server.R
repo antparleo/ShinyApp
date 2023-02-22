@@ -48,7 +48,7 @@ server <- function(input, output, session) {
     
     input$start
     
-    df <- metadataInput()
+    isolate(df <- metadataInput())
     df <- distinct(df[,c('participant_id','Type')])
     
     isolate(ggplot(df,
@@ -68,23 +68,38 @@ server <- function(input, output, session) {
     
     input$start
     
-    isolate(to_plot <- count(metadataInput(),NIH.Racial.Category) %>%
-      arrange(desc(NIH.Racial.Category)) %>%
-      mutate(prop = n / sum(.$n) *100) %>%
-      mutate(ypos = cumsum(prop)- 0.5*prop))
+    isolate(df <- metadataInput())
+    df <- distinct(df[,c('participant_id', 'NIH.Racial.Category', input$feature)])
+    plot <- data.frame(table(df[,c('NIH.Racial.Category',input$feature)]))
     
-    isolate(ggplot(to_plot,
-           aes(x = '', fill = NIH.Racial.Category, y = prop)) +
-      geom_bar(stat = 'identity', color = 'black') +
-      scale_fill_manual(values=my_colors_race)+
-      coord_polar('y', start = 0)+
-      labs(fill = '', y = '', x = '')+
-      theme_void() + 
-      theme(legend.text = element_text(size = 12),
-            legend.title = element_text(size = 20),
-            legend.position = 'bottom') +
-      guides(fill=guide_legend(nrow=3,byrow=TRUE)) +
-      geom_text(aes(y = ypos, label = n), color = "white", size=6))
+    isolate(ggplot(plot,
+                   aes(x = NIH.Racial.Category, fill = plot[,input$feature], y = Freq)) +
+              geom_bar(position = 'stack', stat = 'identity', color = 'black') +
+              scale_fill_manual(values = my_colors[[input$feature]]) +
+              labs(fill = input$feature, y = 'No. Samples', x = '')+
+              theme_bw() + 
+              theme(axis.text = element_text(size = 15, angle = 90),
+                    axis.title = element_text(size = 25),
+                    legend.text = element_text(size = 12),
+                    legend.title = element_text(size = 20)))
+    
+    # isolate(to_plot <- count(metadataInput(),NIH.Racial.Category) %>%
+    #   arrange(desc(NIH.Racial.Category)) %>%
+    #   mutate(prop = n / sum(.$n) *100) %>%
+    #   mutate(ypos = cumsum(prop)- 0.5*prop))
+    # 
+    # isolate(ggplot(to_plot,
+    #        aes(x = '', fill = NIH.Racial.Category, y = prop)) +
+    #   geom_bar(stat = 'identity', color = 'black') +
+    #   scale_fill_manual(values=my_colors_race)+
+    #   coord_polar('y', start = 0)+
+    #   labs(fill = '', y = '', x = '')+
+    #   theme_void() + 
+    #   theme(legend.text = element_text(size = 12),
+    #         legend.title = element_text(size = 20),
+    #         legend.position = 'bottom') +
+    #   guides(fill=guide_legend(nrow=3,byrow=TRUE)) +
+    #   geom_text(aes(y = ypos, label = n), color = "white", size=6))
     
   })
   
@@ -92,7 +107,7 @@ server <- function(input, output, session) {
     
     input$start
     
-    df <- metadataInput()
+    isolate(df <- metadataInput())
     df <- distinct(df[,c('participant_id', 'project', input$feature)])
     plot <- data.frame(table(df[,c('project',input$feature)]))
     
@@ -115,7 +130,7 @@ server <- function(input, output, session) {
 
     input$start
 
-    md <- metadataInput()
+    isolate(md <- metadataInput())
 
     to_plot <- diversity_all %>% filter(specimen%in%md[,'specimen'])
 
@@ -135,7 +150,7 @@ server <- function(input, output, session) {
     )
 
 
-  })
+  }) %>% bindCache(metadataInput(), input$feature, input$metrics)
   
   
   
@@ -143,10 +158,10 @@ server <- function(input, output, session) {
     
     input$start
     
-    md <- metadataInput()
+    isolate(md <- metadataInput())
     diver_md <- merge(x = md, y = diversity_all_long,
                       by = 'specimen')
-    diver_md <- diver_md[diver_md$Metrics%in%input$metrics,]
+    isolate(diver_md <- diver_md[diver_md$Metrics%in%input$metrics,])
     isolate(ggplot(data = diver_md,
                    aes(x = Metrics, y = Score,
                                         fill = diver_md[,input$feature]))+
@@ -167,73 +182,108 @@ server <- function(input, output, session) {
 
   output$apCST <- renderPlot({
 
-    cst_alluvia2 <- cstInput()
-    cst_alluvia_ept <- cst_alluvia2 %>% filter(delivery_wk < 32)
-
-    df_term <- cst_alluvia2[cst_alluvia2$Type == "term",]
-    df_preterm <- cst_alluvia2[cst_alluvia2$Type == "preterm",]
-
-
-    to_plot_term <- df_term[,c("Trimester","participant_id","CST")]
-    term_freq <- to_plot_term %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
-    term_freq <- term_freq %>%
-      group_by(Trimester) %>%
-      mutate(pct = Freq / sum(Freq)*100)
-
-
-    to_plot_preterm <- df_preterm[,c("Trimester","participant_id","CST")]
-    preterm_freq <- to_plot_preterm %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
-    preterm_freq <- preterm_freq %>%
-      group_by(Trimester) %>%
-      mutate(pct = Freq / sum(Freq)*100)
-
-    to_plot_epreterm <- cst_alluvia_ept[,c("Trimester","participant_id","CST")]
-    epreterm_freq <- to_plot_epreterm %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
-    epreterm_freq <- epreterm_freq %>%
-      group_by(Trimester) %>%
-      mutate(pct = Freq / sum(Freq)*100)
-
-    p1 <- ggplot(term_freq,
-                 aes(x = Trimester, stratum = CST, alluvium = participant_id,
-                     fill = CST, label = CST, y = pct)) +
-      scale_fill_brewer(palette = "Set2") +
-      geom_flow(stat = "alluvium", lode.guidance = "frontback") +
-      geom_stratum() +
-      scale_x_discrete(breaks=c("1","2","3"),
-                       labels=c("1 \n(n = 67)", "2 \n(n = 182)", "3 \n(n = 128)")) +
-      ggtitle("Term")+
-      theme_bw()+
-      ylab("Freq")+
-      theme(legend.position = "none", text = element_text(size = 20))
-
-    p2 <- ggplot(preterm_freq,
-                 aes(x = Trimester, stratum = CST, alluvium = participant_id,
-                     fill = CST, label = CST, y = pct)) +
-      scale_fill_brewer(palette = "Set2") +
-      geom_flow(stat = "alluvium", lode.guidance = "frontback") +
-      geom_stratum() +
-      scale_x_discrete(breaks=c("1","2","3"),
-                       labels=c("1 \n(n = 43)", "2 \n(n = 88)", "3 \n(n = 75)")) +
-      ggtitle("Preterm")+
-      ylab("Freq")+
-      theme_bw()+
-      theme(legend.position = "none",text = element_text(size = 20))
-
-    p3 <- ggplot(epreterm_freq,
-                 aes(x = Trimester, stratum = CST, alluvium = participant_id,
-                     fill = CST, label = CST, y = pct)) +
-      scale_fill_brewer(palette = "Set2") +
-      geom_flow(stat = "alluvium", lode.guidance = "frontback") +
-      geom_stratum() +
-      scale_x_discrete(breaks=c("1","2","3"),
-                       labels=c("1 \n(n = 9)", "2 \n(n = 21)", "3 \n(n = 13)")) +
-      ggtitle("Early preterm")+
-      ylab("Freq")+
-      theme_bw()+
-      theme(legend.position = "right",text = element_text(size = 20),
-            legend.text = element_text(size=15))
-
-    ggarrange(p1, p2, p3, ncol=3, common.legend = TRUE, legend="right")
+    input$start
+    
+    isolate(cst_alluvia2 <- cstInput())
+    isolate(values <- unique(cst_alluvia2[,input$feature]))
+    
+    list_df <- lapply(values, function(x){
+      
+      df <- cst_alluvia2[cst_alluvia2[,input$feature] == x,]
+      
+      to_plot <- df[,c("Trimester","participant_id","CST")]
+      df_freq <- to_plot %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n())
+      df_freq <- df_freq %>%
+        group_by(Trimester) %>%
+        mutate(pct = Freq / sum(Freq)*100)
+      
+      
+      p <- ggplot(df_freq,
+                  aes(x = Trimester, stratum = CST, alluvium = participant_id,
+                      fill = CST, label = CST, y = pct)) +
+        scale_fill_manual(values = my_colors[['CST']]) +
+        geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+        geom_stratum() +
+        scale_x_discrete(breaks=c("1","2","3")) +
+        ggtitle(x)+
+        theme_bw()+
+        ylab("Freq")+
+        theme(legend.position = "none", text = element_text(size = 20),
+              plot.title = element_text(hjust = 0.5))
+      return(p)
+      
+    })
+    
+    
+    ggarrange(plotlist = list_df, ncol=length(list_df),
+              common.legend = TRUE, legend="right")
+    
+    # cst_alluvia_ept <- cst_alluvia2 %>% filter(delivery_wk < 32)
+    # 
+    # df_term <- cst_alluvia2[cst_alluvia2$Type == "term",]
+    # df_preterm <- cst_alluvia2[cst_alluvia2$Type == "preterm",]
+    # 
+    # 
+    # to_plot_term <- df_term[,c("Trimester","participant_id","CST")]
+    # term_freq <- to_plot_term %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
+    # term_freq <- term_freq %>%
+    #   group_by(Trimester) %>%
+    #   mutate(pct = Freq / sum(Freq)*100)
+    # 
+    # 
+    # to_plot_preterm <- df_preterm[,c("Trimester","participant_id","CST")]
+    # preterm_freq <- to_plot_preterm %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
+    # preterm_freq <- preterm_freq %>%
+    #   group_by(Trimester) %>%
+    #   mutate(pct = Freq / sum(Freq)*100)
+    # 
+    # to_plot_epreterm <- cst_alluvia_ept[,c("Trimester","participant_id","CST")]
+    # epreterm_freq <- to_plot_epreterm %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n() )
+    # epreterm_freq <- epreterm_freq %>%
+    #   group_by(Trimester) %>%
+    #   mutate(pct = Freq / sum(Freq)*100)
+    # 
+    # p1 <- ggplot(term_freq,
+    #              aes(x = Trimester, stratum = CST, alluvium = participant_id,
+    #                  fill = CST, label = CST, y = pct)) +
+    #   scale_fill_brewer(palette = "Set2") +
+    #   geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+    #   geom_stratum() +
+    #   scale_x_discrete(breaks=c("1","2","3"),
+    #                    labels=c("1 \n(n = 67)", "2 \n(n = 182)", "3 \n(n = 128)")) +
+    #   ggtitle("Term")+
+    #   theme_bw()+
+    #   ylab("Freq")+
+    #   theme(legend.position = "none", text = element_text(size = 20))
+    # 
+    # p2 <- ggplot(preterm_freq,
+    #              aes(x = Trimester, stratum = CST, alluvium = participant_id,
+    #                  fill = CST, label = CST, y = pct)) +
+    #   scale_fill_brewer(palette = "Set2") +
+    #   geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+    #   geom_stratum() +
+    #   scale_x_discrete(breaks=c("1","2","3"),
+    #                    labels=c("1 \n(n = 43)", "2 \n(n = 88)", "3 \n(n = 75)")) +
+    #   ggtitle("Preterm")+
+    #   ylab("Freq")+
+    #   theme_bw()+
+    #   theme(legend.position = "none",text = element_text(size = 20))
+    # 
+    # p3 <- ggplot(epreterm_freq,
+    #              aes(x = Trimester, stratum = CST, alluvium = participant_id,
+    #                  fill = CST, label = CST, y = pct)) +
+    #   scale_fill_brewer(palette = "Set2") +
+    #   geom_flow(stat = "alluvium", lode.guidance = "frontback") +
+    #   geom_stratum() +
+    #   scale_x_discrete(breaks=c("1","2","3"),
+    #                    labels=c("1 \n(n = 9)", "2 \n(n = 21)", "3 \n(n = 13)")) +
+    #   ggtitle("Early preterm")+
+    #   ylab("Freq")+
+    #   theme_bw()+
+    #   theme(legend.position = "right",text = element_text(size = 20),
+    #         legend.text = element_text(size=15))
+    # 
+    # ggarrange(p1, p2, p3, ncol=3, common.legend = TRUE, legend="right")
 
   })
 
@@ -279,9 +329,8 @@ server <- function(input, output, session) {
               theme_bw() +
       theme(legend.position = "bottom",text = element_text(size = 20),
             legend.text = element_text(size=15)) +
-      guides(fill=guide_legend(nrow=3,byrow=TRUE),
-             shape = guide_legend(override.aes = list(size = 5))))
-
+      guides(fill=guide_legend(nrow=3,byrow=TRUE)))
+             # shape = guide_legend(override.aes = list(size = 5))))
 
 
   })

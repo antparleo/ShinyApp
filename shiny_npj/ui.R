@@ -129,7 +129,7 @@ ui <- dashboardPage(
     
     # Piechart Racial
     
-    box(width = 4,
+    box(width = 4 ,
       title = "Race distribution", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
       plotOutput("PCrace", height = 500)
@@ -162,7 +162,7 @@ ui <- dashboardPage(
     
     # Alluvial Plot CST
     
-    box(width = 6,
+    box(width = 12,
         title = "CST by trimester", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("apCST", height = 500)

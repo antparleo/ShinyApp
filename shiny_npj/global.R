@@ -89,10 +89,14 @@ my_colors_type <- c('term' = 'grey',
                     'preterm' = '#72467c',
                     'early' = '#8000FF')
 
+my_colors_cst <- brewer.pal(7,'Set1')
+names(my_colors_cst) <- unique(cst_alluvial$CST)
+
 my_colors = list(
   'project' = my_colors_project,
   'NIH.Racial.Category' = my_colors_race,
   'Type' = my_colors_type,
   'Range' = my_colors_age,
-  'Trimester' = my_colors_trimester
+  'Trimester' = my_colors_trimester,
+  'CST' = my_colors_cst
 )
