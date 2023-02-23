@@ -20,7 +20,9 @@ server <- function(input, output, session) {
   
   
   metadataInput <- reactive({
-
+  
+    input$start
+    
     df <- metadata %>%
       filter((Range %in% input$Age) &
                project%in%input$projects &
@@ -51,16 +53,20 @@ server <- function(input, output, session) {
     isolate(df <- metadataInput())
     df <- distinct(df[,c('participant_id','Type')])
     
-    isolate(ggplot(df,
-           aes(x = Type, fill = Type)) +
-      geom_bar(color = 'black') +
-      scale_fill_manual(values = my_colors_type)+
-      labs(fill = 'Type', y = 'Frequency', x = '')+
-      theme_bw() + 
-      theme(axis.text = element_text(size = 15),
-            axis.title = element_text(size = 25),
-            legend.text = element_text(size = 12),
-            legend.title = element_text(size = 20)))
+    isolate(df <- metadataInput())
+    df <- distinct(df[,c('participant_id', 'Type', input$feature)])
+    plot <- data.frame(table(df[,c('Type',input$feature)]))
+    
+    isolate(ggplot(plot,
+                   aes(x = Type, fill = plot[,input$feature], y = Freq)) +
+              geom_bar(position = 'stack', stat = 'identity', color = 'black') +
+              scale_fill_manual(values = my_colors[[input$feature]]) +
+              labs(fill = input$feature, y = 'No. Samples', x = '')+
+              theme_bw() + 
+              theme(axis.text = element_text(size = 15, angle = 90),
+                    axis.title = element_text(size = 25),
+                    legend.text = element_text(size = 12),
+                    legend.title = element_text(size = 20)))
     
   })
   

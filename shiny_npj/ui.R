@@ -36,7 +36,8 @@ ui <- dashboardPage(
                     c('Trimester' = 'Trimester',
                       'Race' = 'NIH.Racial.Category',
                       'Type' = 'Type',
-                      'Age' = 'Range'),
+                      'Age' = 'Range',
+                      'Project' = 'project'),
                   selected = 'Range'),
       
       
