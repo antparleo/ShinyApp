@@ -7,8 +7,8 @@ ui <- dashboardPage(
   skin = "purple",
   title = "Vaginal ",
   dashboardHeader(
-    title = 'Vaginal microbiome atlas',
-    titleWidth = 300,
+    title = 'VAMAP: Vaginal Microbiome Atlas in Pregnancy',
+    titleWidth = 500,
     
     dropdownMenu(type = "notifications",
                  notificationItem(
@@ -23,15 +23,21 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
     
-    # Select Type
+    # Select Sample or Patricipant
       
-      checkboxGroupInput("type", "Choose the category",
+      selectInput("sample", "Show data by:",
+                  choices =
+                    c('Sample' = 'specimen',
+                      'Individual' = 'participant_id'),
+                  selected = 'specimen'),
+      
+      checkboxGroupInput("type", "Choose the Outcome Category",
                          choices =
                            c('Term' = 'term',
                              'Preterm' = 'preterm',
                              'Early Preterm' = 'early'),
-                         selected = 'term'),
-      selectInput("feature", "Select a feature:",
+                         selected = c('term','preterm','early')),
+      selectInput("feature", "Select a demogrpahic feature to filter by:",
                   choices =
                     c('Trimester' = 'Trimester',
                       'Race' = 'NIH.Racial.Category',
@@ -45,10 +51,10 @@ ui <- dashboardPage(
              # Age
              checkboxGroupInput("Age", "Choose the age range:",
                                 choiceNames =
-                                  list('Below 18','18 to 28', '29 to 38','Above 38', 'Unknown'),
+                                  list('Below 28', '29 to 38','Above 38', 'Unknown'),
                                 choiceValues =
-                                  list("Below 18", "18 to 28", "29 to 38", "Above 38",'Unknown'),
-                                selected = c("Below 18", "18 to 28", "29 to 38", "Above 38",'Unknown')),
+                                  list("Below 28", "29 to 38", "Above 38",'Unknown'),
+                                selected = c("Below 28", "29 to 38", "Above 38",'Unknown')),
              # Project
              selectizeInput('projects',label = 'Project',
                             choices = c('A','B','C','D','E','F','G','H','I','S','W'),multiple = TRUE,
@@ -65,14 +71,12 @@ ui <- dashboardPage(
              # Race
              
              selectizeInput('Race',label = 'NIH Racial Category',
-                            choices = c('White','Asian','American Indian or Alaska Native',
+                            choices = c('White','Asian','Others',
                                         'Black or African American',
-                                        'Native Hawaiian or Other Pacific Islander',
                                         'Unknown'),
-                            multiple = TRUE, selected = c('White','Asia',
-                                                          'American Indian or Alaska Native',
+                            multiple = TRUE, selected = c('White','Asian',
+                                                          'Others',
                                                           'Black or African American',
-                                                          'Native Hawaiian or Other Pacific Islander',
                                                           'Unknown')
              )),
     
@@ -89,13 +93,9 @@ ui <- dashboardPage(
                                         'Rooted PD' = 'rooted_pd',
                                         'Unrooted PD' = 'unrooted_pd',
                                         'Quadratic' = 'quadratic'),
-                            selected = c("Shannon" = 'shannon',
-                                         "Inv Simpsons" = 'inv_simpson',
-                                         "BWPD" = 'bwpd',
-                                         'Phylotype entropy' = 'phylo_entropy',
-                                         'Rooted PD' = 'rooted_pd',
-                                         'Unrooted PD' = 'unrooted_pd',
-                                         'Quadratic' = 'quadratic'),
+                            selected = c('shannon','inv_simpson','bwpd',
+                                         'phylo_entropy','rooted_pd',
+                                         'unrooted_pd','quadratic'),
                             multiple = TRUE)
              # actionButton(inputId = "goButton", label = "Start Analysis")
     ),
@@ -123,7 +123,7 @@ ui <- dashboardPage(
     
     box(
       width = 3,
-      title = "No. samples per condition", solidHeader = TRUE,
+      title = "Number of Samples by outcome", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
       plotOutput("bpType", height = 500, width = 350)
     ),
@@ -131,7 +131,7 @@ ui <- dashboardPage(
     # Piechart Racial
     
     box(width = 4 ,
-      title = "Race distribution", solidHeader = TRUE,
+      title = "Number of Samples by Race", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
       plotOutput("PCrace", height = 500)
     ),
@@ -139,7 +139,7 @@ ui <- dashboardPage(
     # Barplot per project
     
     box(width = 5,
-      title = "No. samples per project", solidHeader = TRUE,
+      title = "Number of Samples by Project", solidHeader = TRUE,
       collapsible = TRUE, background = "purple",
       plotOutput("bpProject", height = 500)
     ),
@@ -148,7 +148,7 @@ ui <- dashboardPage(
     # PairPlot metrics
     
     box(width = 12,
-        title = "Correlation between metrics", solidHeader = TRUE,
+        title = "Diversity Measures: Correlation Between Measures", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("cpDiversity", height = 800)
     ),
@@ -156,7 +156,7 @@ ui <- dashboardPage(
     # Violin Plot diversity
     
     box(width = 12,
-        title = "Distribution", solidHeader = TRUE,
+        title = "Diversity Measures: Box Plot Stratified Visualization", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("vpDiversity", height = 400)
     ),
@@ -164,7 +164,7 @@ ui <- dashboardPage(
     # Alluvial Plot CST
     
     box(width = 12,
-        title = "CST by trimester", solidHeader = TRUE,
+        title = "Community State Types by Trimester", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("apCST", height = 500)
     ),
@@ -172,7 +172,7 @@ ui <- dashboardPage(
     # UMAP Phylotypes
     
     box(width = 6,
-        title = "UMAP phylotypes", solidHeader = TRUE,
+        title = "Dimensionality Reduction Plot (UMAP) Based on Phylotypes", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("upPhylo", height = 500)
     ),
@@ -186,7 +186,7 @@ ui <- dashboardPage(
       tabPanel("Tab1", "First tab content",
     ),
       tabPanel("Tab2", "Tab content 2")
-    ),
+    )
     
   ))
   

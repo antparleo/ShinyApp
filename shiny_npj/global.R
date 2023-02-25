@@ -21,8 +21,10 @@ metadata_all <- read.csv('../Results/metadata_all.csv')
 # Diversity
 
 diversity_all <- read.csv('../Results/diversity_all.csv')
-diversity_all_long <- melt(diversity_all,variable.name = 'Metrics',
-                           value.name = 'Score', id.vars = 'specimen')
+diversity_all_long <- melt(diversity_all, 
+                           id.vars = c('specimen','participant_id'),
+                           variable.name = 'Metrics',
+                           value.name = 'Score')
 
 # Phylotypes
 
@@ -72,6 +74,44 @@ umap2plot <- function(df,phylotypes){
 }
 
 
+metadataSelection <- function(metadata,sampleType){
+  
+  if (sampleType == 'participant_id'){
+    
+    df <- do.call('rbind', lapply(unique(metadata$participant_id),function(my_dup){
+      
+      i <- which.max(metadata[metadata$participant_id == my_dup,'Trimester'])
+      metadata[metadata$participant_id == my_dup,][i,]
+      
+    }))
+    
+  } else {
+    df <- metadata
+  }
+  
+  return(df)
+  
+}
+
+
+diversitySelection <- function(diversity_all,sampleType){
+  
+  if (sampleType == 'participant_id'){
+    
+    df <- diversity_all[,colnames(diversity_all) != 'specimen'] %>% 
+      group_by(participant_id) %>%
+      summarise(across(everything(), mean), .groups = 'drop')
+    
+  } else {
+    df <- diversity_all[,colnames(diversity_all) != 'participant_id']
+  }
+  
+  return(df)
+  
+}
+
+
+
 # Colors
 my_colors_race <- brewer.pal(6,'Dark2')
 names(my_colors_race) <- unique(metadata$NIH.Racial.Category)
@@ -87,7 +127,7 @@ names(my_colors_trimester) <- unique(metadata$Trimester)
 
 my_colors_type <- c('term' = 'grey',
                     'preterm' = '#72467c',
-                    'early' = '#8000FF')
+                    'early' = 'mediumpurple')
 
 my_colors_cst <- brewer.pal(7,'Set1')
 names(my_colors_cst) <- unique(cst_alluvial$CST)
