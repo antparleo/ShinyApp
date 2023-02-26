@@ -7,7 +7,7 @@ ui <- dashboardPage(
   skin = "purple",
   title = "Vaginal ",
   dashboardHeader(
-    title = 'VAMAP: Vaginal Microbiome Atlas in Pregnancy',
+    title = 'VMAP: Vaginal Microbiome Atlas in Pregnancy',
     titleWidth = 500,
     
     dropdownMenu(type = "notifications",
@@ -40,11 +40,11 @@ ui <- dashboardPage(
       selectInput("feature", "Select a demogrpahic feature to filter by:",
                   choices =
                     c('Trimester' = 'Trimester',
-                      'Race' = 'NIH.Racial.Category',
+                      'Race' = 'Race',
                       'Type' = 'Type',
-                      'Age' = 'Range',
+                      'Age' = 'Age',
                       'Project' = 'project'),
-                  selected = 'Range'),
+                  selected = 'Age'),
       
       
     menuItem("Metadata information", icon = icon("th"), tabName = "metadata",
@@ -100,19 +100,21 @@ ui <- dashboardPage(
              # actionButton(inputId = "goButton", label = "Start Analysis")
     ),
     
-    menuItem("Phylotypes", icon = icon("network-wired", class = NULL,
-                                            lib = "font-awesome"),
-             tabName = "diversity", 
-             
-             # Alpha diversity metric
-             radioButtons('division',label = 'Split by',
-                            choices = c("Projects" = 'project',
-                                        "Type" = 'Type'),
-                            selected = c('project'))
-             # actionButton(inputId = "startPhylo", label = "Update UMAP")
-    ),
+    # menuItem("Phylotypes", icon = icon("network-wired", class = NULL,
+    #                                         lib = "font-awesome"),
+    #          tabName = "diversity", 
+    #          
+    #          # Alpha diversity metric
+    #          radioButtons('division',label = 'Split by',
+    #                         choices = c("Projects" = 'project',
+    #                                     "Type" = 'Type'),
+    #                         selected = c('project'))
+    #          # actionButton(inputId = "startPhylo", label = "Update UMAP")
+    # ),
     
-    actionButton(inputId = "start", label = "Update plots")
+    submitButton(text = "Update plots", icon = icon("play", class = NULL,
+                                                    lib = "font-awesome"),
+                 width = 230)
   
   )),
   dashboardBody(
@@ -123,7 +125,7 @@ ui <- dashboardPage(
     
     box(
       width = 3,
-      title = "Number of Samples by outcome", solidHeader = TRUE,
+      title = "% of Samples by outcome", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
       plotOutput("bpType", height = 500, width = 350)
     ),
@@ -131,7 +133,7 @@ ui <- dashboardPage(
     # Piechart Racial
     
     box(width = 4 ,
-      title = "Number of Samples by Race", solidHeader = TRUE,
+      title = "% of Samples by Race", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
       plotOutput("PCrace", height = 500)
     ),
@@ -139,7 +141,7 @@ ui <- dashboardPage(
     # Barplot per project
     
     box(width = 5,
-      title = "Number of Samples by Project", solidHeader = TRUE,
+      title = "% of Samples by Project", solidHeader = TRUE,
       collapsible = TRUE, background = "purple",
       plotOutput("bpProject", height = 500)
     ),
@@ -164,7 +166,7 @@ ui <- dashboardPage(
     # Alluvial Plot CST
     
     box(width = 12,
-        title = "Community State Types by Trimester", solidHeader = TRUE,
+        title = "VALENCIA Community State Types (CST) by Trimester", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("apCST", height = 500)
     ),
@@ -179,14 +181,14 @@ ui <- dashboardPage(
     
     
     # TabBox
-    tabBox(
-      title = "First tabBox",
-      # The id lets us use input$tabset1 on the server to find the current tab
-      id = "tabset1", height = "800px",
-      tabPanel("Tab1", "First tab content",
-    ),
-      tabPanel("Tab2", "Tab content 2")
-    )
+    # tabBox(
+    #   title = "First tabBox",
+    #   # The id lets us use input$tabset1 on the server to find the current tab
+    #   id = "tabset1", height = "800px",
+    #   tabPanel("Tab1", "First tab content",
+    # ),
+    #   tabPanel("Tab2", "Tab content 2")
+    # )
     
   ))
   

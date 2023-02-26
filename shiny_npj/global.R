@@ -47,16 +47,16 @@ metadata$Trimester <- as.character(metadata$Trimester)
 dim(metadata) # 3909
 
 all(metadata$specimen == diversity_all$specimen) # TRUE
-metadata %>% select(Type,Range,participant_id,project) %>% distinct() %>% count(project,Type)
+metadata %>% select(Type,Age,participant_id,project) %>% distinct() %>% count(project,Type)
 
 
 
 
 # Functions
 
-umap2plot <- function(df,phylotypes){
+umap2plot <- function(df,phylotypes, SampleType){
   
-  to_plot <- phylotypes[df$specimen,]
+  to_plot <- phylotypes[df[,SampleType],]
   
   phylo_umap <- umap(d = to_plot,method = 'umap-learn',
                      metric = 'braycurtis',
@@ -67,8 +67,8 @@ umap2plot <- function(df,phylotypes){
     as.data.frame()%>%
     rename(UMAP1="V1",
            UMAP2="V2") %>%
-    mutate(specimen=rownames(to_plot)) %>%
-    inner_join(df, by='specimen')
+    mutate(!!SampleType:=rownames(to_plot)) %>%
+    inner_join(df, by=SampleType)
   
   return(umap_df)
 }
@@ -110,17 +110,35 @@ diversitySelection <- function(diversity_all,sampleType){
   
 }
 
+umapSelection <- function(phylotypes_umap,sampleType){
+  
+  if (sampleType == 'participant_id'){
+    
+    phylotypes_umap$participant_id <- gsub('-.*','', rownames(phylotypes_umap))
+    
+    df <- phylotypes_umap %>% 
+      group_by(participant_id) %>%
+      summarise(across(everything(), mean), .groups = 'drop')
+    df <- df %>% column_to_rownames(., var = 'participant_id')
+    
+  } else {
+    df <- phylotypes_umap
+  }
+  
+  return(df)
+  
+}
 
 
 # Colors
 my_colors_race <- brewer.pal(6,'Dark2')
-names(my_colors_race) <- unique(metadata$NIH.Racial.Category)
+names(my_colors_race) <- unique(metadata$Race)
 
 my_colors_project <- brewer.pal(12,'Paired')
 names(my_colors_project) <- unique(metadata$project)
 
 my_colors_age <- brewer.pal(5,'Dark2')
-names(my_colors_age) <- unique(metadata$Range)
+names(my_colors_age) <- unique(metadata$Age)
 
 my_colors_trimester <- brewer.pal(5,'Dark2')
 names(my_colors_trimester) <- unique(metadata$Trimester)
@@ -134,9 +152,9 @@ names(my_colors_cst) <- unique(cst_alluvial$CST)
 
 my_colors = list(
   'project' = my_colors_project,
-  'NIH.Racial.Category' = my_colors_race,
+  'Race' = my_colors_race,
   'Type' = my_colors_type,
-  'Range' = my_colors_age,
+  'Age' = my_colors_age,
   'Trimester' = my_colors_trimester,
   'CST' = my_colors_cst
 )
