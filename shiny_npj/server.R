@@ -221,7 +221,7 @@ server <- function(input, output, session) {
       p <- ggplot(df_freq,
                   aes(x = Trimester, stratum = CST, alluvium = participant_id,
                       fill = CST, label = CST, y = pct)) +
-        scale_fill_manual(values = my_colors[['CST']]) +
+        scale_fill_manual(values = my_colors[['CST']], limits = names(my_colors[['CST']])) +
         geom_flow(stat = "alluvium", lode.guidance = "frontback") +
         geom_stratum() +
         scale_x_discrete(breaks=c("1","2","3")) +
@@ -272,6 +272,73 @@ server <- function(input, output, session) {
 
 
   })
-
+  
+  
+  phyloType <- reactive({
+    phyloSelection(phylo_1e1,input$sample)
+  }) %>% bindCache(input$sample)
+  
+  output$hmPhylo <- renderPlot({
+    
+    metadata <- metadataInput()
+    
+    list_plots <- lapply(c(1,2,3), function(my_tri){
+      
+      metadata_trimester <- metadata[metadata$Trimester == my_tri,]
+      phylo_trimester <- merge(phyloType(), metadata_trimester[,c(input$sample,input$feature)],
+                               by = input$sample)
+      
+      test <- do.call('cbind',lapply(unique(metadata_trimester[,input$feature]), function(my_feat){
+        
+        print(my_feat)
+        
+        phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,!colnames(phylo_trimester)%in%c(input$feature)] %>%
+          remove_rownames %>% column_to_rownames(var = input$sample)
+        
+        if(nrow(phylo_feat) > 0){
+          
+          counts <- as.data.frame(apply(phylo_feat>0,2,sum) / nrow(phylo_feat))
+          colnames(counts) <- my_feat
+          # rownames(counts) <- NULL
+        } else{
+          
+          warning(paste0('No information for', my_feat, collapse = ' '))
+          
+        }
+        
+        return(counts)
+        
+      }))
+      
+      test$ID <- rownames(test)
+      # test %>% arrange(desc(E))
+      
+      to_plot <- melt(test[input$Specie,], id.vars = 'ID') %>% rename(!!input$feature := variable, Counts = value) %>%
+        arrange(Counts)
+      to_plot$Counts <- round(to_plot$Counts*100,2)
+      
+      plot <- ggplot(to_plot, aes(x = to_plot[,input$feature], y = ID, fill = Counts)) + 
+        xlab(input$feature) +
+        geom_tile(color='black')+
+        scale_fill_gradient(low = "white", high = "purple")+
+        geom_text(aes(label = Counts), color = 'black')+
+        theme_bw()+
+        ggtitle(paste0('Trimester ',my_tri)) +
+        theme(axis.text = element_text(size = 12),
+              axis.title.y = element_blank(),
+              axis.title.x  = element_text(size = 15))
+      
+      if (my_tri != 3)
+      {plot = plot+theme(axis.title.x = element_blank())}
+      
+      return(plot)
+      
+    })
+    
+    ggarrange(plotlist = list_plots, nrow=length(list_plots),
+              common.legend = TRUE, legend="right")
+    
+    
+  })
   
 }

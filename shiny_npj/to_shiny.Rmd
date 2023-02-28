@@ -305,3 +305,20 @@ md_participant <- rbind(md_participant_good,no_duplicated)
 sum(duplicated(no_duplicated$participant_id))
 ```
 
+```{r}
+ umap2plot(metadata,phylotypes_umap, 'specimen')
+```
+
+
+```{r}
+volcano %>%
+  
+  # Data wrangling
+  as_tibble() %>%
+  rowid_to_column(var="X") %>%
+  gather(key="Y", value="Z", -1) %>%
+  
+  # Change Y to numeric
+  mutate(Y=as.numeric(gsub("V","",Y)))
+```
+

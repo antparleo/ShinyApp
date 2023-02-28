@@ -38,6 +38,17 @@ phylotypes_umap <- phylotypes_umap[phylotypes$specimen,] # TRUE
 
 cst_alluvial <- read.csv('../Results/cst2alluvia.csv')
 
+# Phylotypes Heatmap Taxonomy
+
+phylo_specie <- read.csv('../Results/phylo_specie_1e1.csv')
+phylo_1e1 <- read.csv('../Results/phylotypes_1e1_heatmap.csv', row.names = 1)
+
+index <- match(colnames(phylo_1e1),phylo_specie$phylotypes)
+all(colnames(phylo_1e1) == phylo_specie[index,]$phylotypes) # TRUE
+
+colnames(phylo_1e1) <- phylo_specie[index,]$Specie
+# phylo_1e1$specimen <- rownames(phylo_1e1)
+
 # Create final metadata ---------------------------------------------------
 
 all(phylotypes$specimen == diversity_all$specimen) # TRUE Same order
@@ -126,6 +137,28 @@ umapSelection <- function(phylotypes_umap,sampleType){
   }
   
   return(df)
+  
+}
+
+colnames(phylo_1e1) <- make.unique(colnames(phylo_1e1), sep = '_')
+
+
+phyloSelection <- function(phylo,sampleType){
+  
+  if (sampleType == 'participant_id'){
+    
+    phylo$participant_id <- gsub('-.*','', rownames(phylo))
+    
+    phylo <- phylo %>%
+      group_by(participant_id) %>%
+      summarise(across(everything(), mean), .groups = 'drop')
+    # phylo <- phylo %>% column_to_rownames(., var = 'participant_id')
+    
+  } else {
+    phylo$specimen <- rownames(phylo)
+  }
+  
+  return(phylo)
   
 }
 

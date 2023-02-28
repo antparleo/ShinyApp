@@ -57,8 +57,8 @@ ui <- dashboardPage(
                                 selected = c("Below 28", "29 to 38", "Above 38",'Unknown')),
              # Project
              selectizeInput('projects',label = 'Project',
-                            choices = c('A','B','C','D','E','F','G','H','I','S','W'),multiple = TRUE,
-                            selected = c('A','B','C','D','E','F','G','H','I','S','W')),
+                            choices = c('A','B','C','D','E','F','G','H','I','J','S','W'),multiple = TRUE,
+                            selected = c('A','B','C','D','E','F','G','H','I','J','S','W')),
              
              # Trimester
              
@@ -100,17 +100,16 @@ ui <- dashboardPage(
              # actionButton(inputId = "goButton", label = "Start Analysis")
     ),
     
-    # menuItem("Phylotypes", icon = icon("network-wired", class = NULL,
-    #                                         lib = "font-awesome"),
-    #          tabName = "diversity", 
-    #          
-    #          # Alpha diversity metric
-    #          radioButtons('division',label = 'Split by',
-    #                         choices = c("Projects" = 'project',
-    #                                     "Type" = 'Type'),
-    #                         selected = c('project'))
-    #          # actionButton(inputId = "startPhylo", label = "Update UMAP")
-    # ),
+    menuItem("Taxonomy", icon = icon("network-wired", class = NULL,
+                                            lib = "font-awesome"),
+             tabName = "Taxonomy",
+
+             # Alpha diversity metric
+             selectizeInput('Specie',label = 'Select specie',
+                            choices = colnames(phylo_1e1),
+                            selected = colnames(phylo_1e1)[1:10],
+                            multiple = TRUE)
+    ),
     
     submitButton(text = "Update plots", icon = icon("play", class = NULL,
                                                     lib = "font-awesome"),
@@ -176,8 +175,16 @@ ui <- dashboardPage(
     box(width = 6,
         title = "Dimensionality Reduction Plot (UMAP) Based on Phylotypes", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
-        plotOutput("upPhylo", height = 500)
+        plotOutput("upPhylo", height = 800)
     ),
+    
+    # Heatmap Phylotypes
+    
+    box(width = 6,
+        title = "Heatmap taxonomy", solidHeader = TRUE,
+        collapsible = TRUE, background = "purple",
+        plotOutput("hmPhylo", height = 800)
+    )
     
     
     # TabBox
