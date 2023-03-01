@@ -36,6 +36,7 @@ server <- function(input, output, session) {
   })
   
   
+  # Barplot Outcome
   
   output$bpType <- renderPlot({
     
@@ -74,6 +75,8 @@ server <- function(input, output, session) {
     
   })
   
+  # Barplot Race
+  
   output$PCrace <- renderPlot({
     
     df <- metadataInput()
@@ -106,6 +109,8 @@ server <- function(input, output, session) {
                                         "White" = "White"
                                         ))
   })
+  
+  # Barplot Project
   
   output$bpProject <- renderPlot({
   
@@ -141,6 +146,20 @@ server <- function(input, output, session) {
     
   })
   
+  output$my_race <- renderUI(HTML(markdown(
+    
+    
+    ' #### Race categories
+    
+      Other category contains:
+      - American Indian or Alaska Native
+      - Native Hawaiian or Other Pacific Islander
+      - Asian'
+    
+  )))
+  
+  # Pairplot diversity
+  
  
   output$cpDiversity <- renderPlot({
     
@@ -162,7 +181,7 @@ server <- function(input, output, session) {
 
   })
   
-  
+  # Violin Plot diversity
   
   output$vpDiversity <- renderPlot({
     
@@ -199,8 +218,27 @@ server <- function(input, output, session) {
               common.legend = TRUE, legend="right")
 
   })
+  
+  
+  # Legend text
+  
+  output$my_text <- renderUI(HTML(markdown(
+    
+    
+    ' #### Diversity Metrics
+    
+      - Balance weighted phylogenetic diversity (bwpd)
+      - Inverse Simpson (inv_simpson)
+      - Phylogenetic entropy (phylo_entropy)
+      - Quadratic (quadratic)
+      - Rooted phylogenetic diversity (rooted_pd)
+      - Shannon (shannon)
+      - Unrooted phylogenetic diversity (unrooted_pd)'
+    
+  )))
 
 
+  # CST alluvial plot
 
   output$apCST <- renderPlot({
 
@@ -253,6 +291,9 @@ server <- function(input, output, session) {
 
   }) %>%
     bindCache(metadataInput(), input$sample, umapType())
+  
+  
+  # UMAP phylotype plot
 
   output$upPhylo <- renderPlot({
 
@@ -278,6 +319,9 @@ server <- function(input, output, session) {
     phyloSelection(phylo_1e1,input$sample)
   }) %>% bindCache(input$sample)
   
+  
+  # Heatmap phylotype plot
+  
   output$hmPhylo <- renderPlot({
     
     metadata <- metadataInput()
@@ -288,14 +332,14 @@ server <- function(input, output, session) {
       phylo_trimester <- merge(phyloType(), metadata_trimester[,c(input$sample,input$feature)],
                                by = input$sample)
       
-      test <- do.call('cbind',lapply(unique(metadata_trimester[,input$feature]), function(my_feat){
+      test <- do.call('cbind',lapply(sort(unique(metadata_trimester[,input$feature])), function(my_feat){
         
         print(my_feat)
         
         phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,!colnames(phylo_trimester)%in%c(input$feature)] %>%
           remove_rownames %>% column_to_rownames(var = input$sample)
         
-        if(nrow(phylo_feat) > 0){
+        if(nrow(phylo_feat) > 0 ){
           
           counts <- as.data.frame(apply(phylo_feat>0,2,sum) / nrow(phylo_feat))
           colnames(counts) <- my_feat
@@ -310,23 +354,30 @@ server <- function(input, output, session) {
         
       }))
       
-      test$ID <- rownames(test)
+      test_sorted <- test[names(sort(apply(test[input$Specie,],1,mean), decreasing = F)),]
+      
+      test_sorted$ID <- rownames(test_sorted)
       # test %>% arrange(desc(E))
       
-      to_plot <- melt(test[input$Specie,], id.vars = 'ID') %>% rename(!!input$feature := variable, Counts = value) %>%
+      to_plot <- melt(test_sorted, id.vars = 'ID') %>% rename(!!input$feature := variable, Counts = value) %>%
         arrange(Counts)
-      to_plot$Counts <- round(to_plot$Counts*100,2)
+      to_plot$Counts <- round(to_plot$Counts*100,0)
+      to_plot$ID <- factor(to_plot$ID,levels = rownames(test_sorted))
       
       plot <- ggplot(to_plot, aes(x = to_plot[,input$feature], y = ID, fill = Counts)) + 
         xlab(input$feature) +
         geom_tile(color='black')+
-        scale_fill_gradient(low = "white", high = "purple")+
-        geom_text(aes(label = Counts), color = 'black')+
+        scale_fill_gradient(low = "white", high = "purple", limits = c(0,100))+
+        geom_text(aes(label = Counts), color = 'black',size = 6)+
         theme_bw()+
+        labs(fill = 'Percentage') +
         ggtitle(paste0('Trimester ',my_tri)) +
-        theme(axis.text = element_text(size = 12),
+        theme(axis.text = element_text(size = 15),
               axis.title.y = element_blank(),
-              axis.title.x  = element_text(size = 15))
+              axis.title.x  = element_text(size = 20),
+              legend.text = element_text(size = 15),
+              legend.title = element_text(size = 15),
+              plot.title = element_text(size = 20))
       
       if (my_tri != 3)
       {plot = plot+theme(axis.title.x = element_blank())}

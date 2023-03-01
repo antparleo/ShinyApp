@@ -8,16 +8,7 @@ ui <- dashboardPage(
   title = "Vaginal ",
   dashboardHeader(
     title = 'VMAP: Vaginal Microbiome Atlas in Pregnancy',
-    titleWidth = 500,
-    
-    dropdownMenu(type = "notifications",
-                 notificationItem(
-                   text = tags$div("There are 1,702 samples with",
-                                   tags$br(),
-                                   "unknown age which will be included.",
-                                   style = "display: inline-block; vertical-align: middle;"),
-                   icon("circle-info")
-                 ))
+    titleWidth = 500
   ),
   
   dashboardSidebar(
@@ -29,32 +20,32 @@ ui <- dashboardPage(
                   choices =
                     c('Sample' = 'specimen',
                       'Individual' = 'participant_id'),
-                  selected = 'specimen'),
+                  selected = 'participant_id'),
       
       checkboxGroupInput("type", "Choose the Outcome Category",
                          choices =
-                           c('Term' = 'term',
-                             'Preterm' = 'preterm',
-                             'Early Preterm' = 'early'),
+                           c('Term (>= 37 weeks gestational age (GA))' = 'term',
+                             'Preterm (< 37 weeks GA)' = 'preterm',
+                             'Early Preterm (< 32 weeks GA)' = 'early'),
                          selected = c('term','preterm','early')),
       selectInput("feature", "Select a demogrpahic feature to filter by:",
                   choices =
                     c('Trimester' = 'Trimester',
                       'Race' = 'Race',
-                      'Type' = 'Type',
+                      'Outcome' = 'Type',
                       'Age' = 'Age',
                       'Project' = 'project'),
-                  selected = 'Age'),
+                  selected = 'Type'),
       
       
     menuItem("Metadata information", icon = icon("th"), tabName = "metadata",
              # Age
              checkboxGroupInput("Age", "Choose the age range:",
                                 choiceNames =
-                                  list('Below 28', '29 to 38','Above 38', 'Unknown'),
+                                  list('Below 28', 'Above 29', 'Unknown'),
                                 choiceValues =
-                                  list("Below 28", "29 to 38", "Above 38",'Unknown'),
-                                selected = c("Below 28", "29 to 38", "Above 38",'Unknown')),
+                                  list("Below 28", "Above 29",'Unknown'),
+                                selected = c("Below 28", "Above 29",'Unknown')),
              # Project
              selectizeInput('projects',label = 'Project',
                             choices = c('A','B','C','D','E','F','G','H','I','J','S','W'),multiple = TRUE,
@@ -71,11 +62,11 @@ ui <- dashboardPage(
              # Race
              
              selectizeInput('Race',label = 'NIH Racial Category',
-                            choices = c('White','Asian','Others',
+                            choices = c('White','Other',
                                         'Black or African American',
                                         'Unknown'),
-                            multiple = TRUE, selected = c('White','Asian',
-                                                          'Others',
+                            multiple = TRUE, selected = c('White',
+                                                          'Other',
                                                           'Black or African American',
                                                           'Unknown')
              )),
@@ -100,7 +91,7 @@ ui <- dashboardPage(
              # actionButton(inputId = "goButton", label = "Start Analysis")
     ),
     
-    menuItem("Taxonomy", icon = icon("network-wired", class = NULL,
+    menuItem("Composition", icon = icon("network-wired", class = NULL,
                                             lib = "font-awesome"),
              tabName = "Taxonomy",
 
@@ -145,6 +136,15 @@ ui <- dashboardPage(
       plotOutput("bpProject", height = 500)
     ),
     
+    # Legend for Race
+    
+    box(width = 12 ,
+        title = "Legend for Race", solidHeader = TRUE,
+        collapsible = TRUE,background = "purple",
+        uiOutput('my_race')
+    ),
+    
+    
     
     # PairPlot metrics
     
@@ -162,6 +162,15 @@ ui <- dashboardPage(
         plotOutput("vpDiversity", height = 400)
     ),
     
+    # Legend for diversity
+    
+    box(width = 12 ,
+        title = "Legend for Diversity Metrics", solidHeader = TRUE,
+        collapsible = TRUE,background = "purple",
+        uiOutput('my_text')
+    ),
+    
+    
     # Alluvial Plot CST
     
     box(width = 12,
@@ -170,32 +179,23 @@ ui <- dashboardPage(
         plotOutput("apCST", height = 500)
     ),
     
-    # UMAP Phylotypes
     
-    box(width = 6,
-        title = "Dimensionality Reduction Plot (UMAP) Based on Phylotypes", solidHeader = TRUE,
-        collapsible = TRUE, background = "purple",
-        plotOutput("upPhylo", height = 800)
-    ),
     
     # Heatmap Phylotypes
     
-    box(width = 6,
-        title = "Heatmap taxonomy", solidHeader = TRUE,
+    box(width = 12,
+        title = "Heatmap of Taxonomical Features", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
         plotOutput("hmPhylo", height = 800)
-    )
+    ),
     
+    # UMAP Phylotypes
     
-    # TabBox
-    # tabBox(
-    #   title = "First tabBox",
-    #   # The id lets us use input$tabset1 on the server to find the current tab
-    #   id = "tabset1", height = "800px",
-    #   tabPanel("Tab1", "First tab content",
-    # ),
-    #   tabPanel("Tab2", "Tab content 2")
-    # )
+    box(width = 12,
+        title = "Dimensionality Reduction Plot (UMAP) Based on Phylotypes", solidHeader = TRUE,
+        collapsible = TRUE, background = "purple",
+        plotOutput("upPhylo", height = 900)
+    ),
     
   ))
   

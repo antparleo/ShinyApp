@@ -46,7 +46,11 @@ phylo_1e1 <- read.csv('../Results/phylotypes_1e1_heatmap.csv', row.names = 1)
 index <- match(colnames(phylo_1e1),phylo_specie$phylotypes)
 all(colnames(phylo_1e1) == phylo_specie[index,]$phylotypes) # TRUE
 
-colnames(phylo_1e1) <- phylo_specie[index,]$Specie
+colnames(phylo_1e1) <- paste(phylo_specie[index,]$phylotypes,
+                              phylo_specie[index,]$Specie,
+                              sep = ' | ')
+
+# colnames(phylo_1e1) <- phylo_specie[index,]$Specie
 # phylo_1e1$specimen <- rownames(phylo_1e1)
 
 # Create final metadata ---------------------------------------------------
