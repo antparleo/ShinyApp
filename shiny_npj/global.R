@@ -85,7 +85,7 @@ umap2plot <- function(df,phylotypes, SampleType){
     mutate(!!SampleType:=rownames(to_plot)) %>%
     inner_join(df, by=SampleType)
   
-  return(umap_df)
+  return(umap_df_hola)
 }
 
 
