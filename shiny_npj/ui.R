@@ -48,7 +48,18 @@ ui <- dashboardPage(
                                 selected = c("Below 28", "Above 29",'Unknown')),
              # Project
              selectizeInput('projects',label = 'Project',
-                            choices = c('A','B','C','D','E','F','G','H','I','J','S','W'),multiple = TRUE,
+                            choices = c('A: SDY465' = 'A',
+                                        'B: PRJEB11895' = 'B',
+                                        'C: PRJEB21325' = 'C',
+                                        'D: PRJEB30642' = 'D',
+                                        'E: PRJNA242473' = 'E',
+                                        'F: PRJNA294119' = 'F',
+                                        'G: PRJNA393472' ='G',
+                                        'H: PRJNA430482' = 'H',
+                                        'I: PRJNA504518' = 'I',
+                                        'J: PRJEB12577' = 'J',
+                                        'S: Validation-Stanford/UCSF' = 'S',
+                                        'W: Validation-Wayne State' = 'W'),multiple = TRUE,
                             selected = c('A','B','C','D','E','F','G','H','I','J','S','W')),
              
              # Trimester
@@ -142,6 +153,14 @@ ui <- dashboardPage(
         title = "Legend for Race", solidHeader = TRUE,
         collapsible = TRUE,background = "purple",
         uiOutput('my_race')
+    ),
+    
+    # Legend for project
+    
+    box(width = 12 ,
+        title = "Legend for Project", solidHeader = TRUE,
+        collapsible = TRUE,background = "purple",
+        tableOutput('studies')
     ),
     
     

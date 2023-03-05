@@ -154,9 +154,14 @@ server <- function(input, output, session) {
       Other category contains:
       - American Indian or Alaska Native
       - Native Hawaiian or Other Pacific Islander
-      - Asian'
+      - Asian
+      
+    '
     
   )))
+  
+  output$studies <- renderTable(studies)
+  
   
   # Pairplot diversity
   
@@ -279,12 +284,6 @@ server <- function(input, output, session) {
   })
 
   
-  # umapType <- reactive({
-  #   umapSelection(phylotypes_umap, input$sample)
-  # 
-  # }) %>%
-  #   bindCache(input$sample)
-  # 
   umapInput <-  reactive({
     
     umap2plot(metadataInput(),umap_dfs[[input$sample]], input$sample)
@@ -334,7 +333,7 @@ server <- function(input, output, session) {
 
       test <- do.call('cbind',lapply(sort(unique(metadata_trimester[,input$feature])), function(my_feat){
 
-        print(my_feat)
+        # print(my_feat)
 
         phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,
                                       c(phylo_specie,input$sample)] %>%
@@ -344,7 +343,6 @@ server <- function(input, output, session) {
 
           counts <- as.data.frame(apply(phylo_feat>0,2,sum) / nrow(phylo_feat))
           colnames(counts) <- my_feat
-          # rownames(counts) <- NULL
         } else{
 
           warning(paste0('No information for', my_feat, collapse = ' '))
