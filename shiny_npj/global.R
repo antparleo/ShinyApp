@@ -29,10 +29,12 @@ diversity_all_long <- melt(diversity_all,
 # Phylotypes
 
 phylotypes <- read.csv('../Results/phylotypes_all.csv')
-phylotypes_umap <- read.csv('Pt5e_1.combined.pseudocounts.csv', row.names = 1)
-all(rownames(phylotypes_umap) %in%phylotypes$specimen) # TRUE
+# phylotypes_umap <- read.csv('Pt5e_1.combined.pseudocounts.csv', row.names = 1)
+# all(rownames(phylotypes_umap) %in%phylotypes$specimen) # TRUE
+# 
+# phylotypes_umap <- phylotypes_umap[phylotypes$specimen,] # TRUE
 
-phylotypes_umap <- phylotypes_umap[phylotypes$specimen,] # TRUE
+load('../Results/umap_dfs.RData') # umap_dfs
 
 # CST
 
@@ -40,18 +42,20 @@ cst_alluvial <- read.csv('../Results/cst2alluvia.csv')
 
 # Phylotypes Heatmap Taxonomy
 
-phylo_specie <- read.csv('../Results/phylo_specie_1e1.csv')
-phylo_1e1 <- read.csv('../Results/phylotypes_1e1_heatmap.csv', row.names = 1)
-
-index <- match(colnames(phylo_1e1),phylo_specie$phylotypes)
-all(colnames(phylo_1e1) == phylo_specie[index,]$phylotypes) # TRUE
-
-colnames(phylo_1e1) <- paste(phylo_specie[index,]$phylotypes,
-                              phylo_specie[index,]$Specie,
-                              sep = ' | ')
+# phylo_specie <- read.csv('../Results/phylo_specie_1e1.csv')
+# phylo_1e1 <- read.csv('../Results/phylotypes_1e1_heatmap.csv', row.names = 1)
+# 
+# index <- match(colnames(phylo_1e1),phylo_specie$phylotypes)
+# all(colnames(phylo_1e1) == phylo_specie[index,]$phylotypes) # TRUE
+# 
+# colnames(phylo_1e1) <- paste(phylo_specie[index,]$phylotypes,
+#                               phylo_specie[index,]$Specie,
+#                               sep = ' | ')
 
 # colnames(phylo_1e1) <- phylo_specie[index,]$Specie
 # phylo_1e1$specimen <- rownames(phylo_1e1)
+
+load('../Results/heatmap_dfs.RData')
 
 # Create final metadata ---------------------------------------------------
 
@@ -69,23 +73,28 @@ metadata %>% select(Type,Age,participant_id,project) %>% distinct() %>% count(pr
 
 # Functions
 
-umap2plot <- function(df,phylotypes, SampleType){
+umap2plot <- function(md,umap, sampletype){
   
-  to_plot <- phylotypes[df[,SampleType],]
+  to_plot <- umap %>%
+    inner_join(md, by=sampletype)
   
-  phylo_umap <- umap(d = to_plot,method = 'umap-learn',
-                     metric = 'braycurtis',
-                     n_neighbors = 45, n_components = 2,
-                     min_dist = 1, spread = 1.1,random_state = 6)
   
-  umap_df <- phylo_umap$layout %>%
-    as.data.frame()%>%
-    rename(UMAP1="V1",
-           UMAP2="V2") %>%
-    mutate(!!SampleType:=rownames(to_plot)) %>%
-    inner_join(df, by=SampleType)
   
-  return(umap_df_hola)
+  # to_plot <- phylotypes[df[,SampleType],]
+  # 
+  # phylo_umap <- umap(d = to_plot,method = 'umap-learn',
+  #                    metric = 'braycurtis',
+  #                    n_neighbors = 45, n_components = 2,
+  #                    min_dist = 1, spread = 1.1,random_state = 6)
+  # 
+  # umap_df <- phylo_umap$layout %>%
+  #   as.data.frame()%>%
+  #   rename(UMAP1="V1",
+  #          UMAP2="V2") %>%
+  #   mutate(!!SampleType:=rownames(to_plot)) %>%
+  #   inner_join(df, by=SampleType)
+  
+  return(to_plot)
 }
 
 
@@ -147,20 +156,9 @@ umapSelection <- function(phylotypes_umap,sampleType){
 colnames(phylo_1e1) <- make.unique(colnames(phylo_1e1), sep = '_')
 
 
-phyloSelection <- function(phylo,sampleType){
+phyloSelection <- function(dfs,sampleType){
   
-  if (sampleType == 'participant_id'){
-    
-    phylo$participant_id <- gsub('-.*','', rownames(phylo))
-    
-    phylo <- phylo %>%
-      group_by(participant_id) %>%
-      summarise(across(everything(), mean), .groups = 'drop')
-    # phylo <- phylo %>% column_to_rownames(., var = 'participant_id')
-    
-  } else {
-    phylo$specimen <- rownames(phylo)
-  }
+  phylo <- heatmap_dfs[[sampleType]]
   
   return(phylo)
   

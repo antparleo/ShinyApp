@@ -279,18 +279,18 @@ server <- function(input, output, session) {
   })
 
   
-  umapType <- reactive({
-    umapSelection(phylotypes_umap, input$sample)
-  
-  }) %>%
-    bindCache(input$sample)
-
+  # umapType <- reactive({
+  #   umapSelection(phylotypes_umap, input$sample)
+  # 
+  # }) %>%
+  #   bindCache(input$sample)
+  # 
   umapInput <-  reactive({
-
-    umap2plot(metadataInput(),umapType(), input$sample)
+    
+    umap2plot(metadataInput(),umap_dfs[[input$sample]], input$sample)
 
   }) %>%
-    bindCache(metadataInput(), input$sample, umapType())
+    bindCache(metadataInput(), input$sample)
   
   
   # UMAP phylotype plot
@@ -300,8 +300,8 @@ server <- function(input, output, session) {
     toplot <- umapInput()
     ggplot(toplot, aes(x = UMAP1,
                                 y = UMAP2,
-                                color = toplot[,input$feature]))+
-              geom_point() +
+                       color = toplot[,input$feature]))+
+              geom_point(size = 4) +
               scale_color_manual(values = my_colors[[input$feature]])+
               labs(x = "UMAP1",
                    y = "UMAP2",
@@ -316,55 +316,63 @@ server <- function(input, output, session) {
   
   
   phyloType <- reactive({
-    phyloSelection(phylo_1e1,input$sample)
+    phyloSelection(heatmap_dfs,input$sample)
   }) %>% bindCache(input$sample)
-  
-  
+
+
   # Heatmap phylotype plot
-  
+
   output$hmPhylo <- renderPlot({
-    
+
     metadata <- metadataInput()
-    
-    list_plots <- lapply(c(1,2,3), function(my_tri){
-      
+
+    list_plots <- lapply(sort(input$trimester), function(my_tri){
+
       metadata_trimester <- metadata[metadata$Trimester == my_tri,]
       phylo_trimester <- merge(phyloType(), metadata_trimester[,c(input$sample,input$feature)],
                                by = input$sample)
-      
+
       test <- do.call('cbind',lapply(sort(unique(metadata_trimester[,input$feature])), function(my_feat){
-        
+
         print(my_feat)
-        
-        phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,!colnames(phylo_trimester)%in%c(input$feature)] %>%
+
+        phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,
+                                      c(colnames(phylo_1e1),input$sample)] %>%
           remove_rownames %>% column_to_rownames(var = input$sample)
-        
+
         if(nrow(phylo_feat) > 0 ){
-          
+
           counts <- as.data.frame(apply(phylo_feat>0,2,sum) / nrow(phylo_feat))
           colnames(counts) <- my_feat
           # rownames(counts) <- NULL
         } else{
-          
+
           warning(paste0('No information for', my_feat, collapse = ' '))
-          
+
         }
-        
+
         return(counts)
-        
+
       }))
-      
-      test_sorted <- test[names(sort(apply(test[input$Specie,],1,mean), decreasing = F)),]
-      
-      test_sorted$ID <- rownames(test_sorted)
-      # test %>% arrange(desc(E))
-      
+
+      if(ncol(test) == 1) {
+        
+        id <- colnames(test)
+        test$ID <- rownames(test)
+        test <- test[input$Specie,]
+        test_sorted <- test[order(test[,id], decreasing = F),]
+        
+      } else {
+        test_sorted <- test[names(sort(apply(test[input$Specie,],1,mean), decreasing = F)),]
+        test_sorted$ID <- rownames(test_sorted)
+      }
+
       to_plot <- melt(test_sorted, id.vars = 'ID') %>% rename(!!input$feature := variable, Counts = value) %>%
         arrange(Counts)
       to_plot$Counts <- round(to_plot$Counts*100,0)
       to_plot$ID <- factor(to_plot$ID,levels = rownames(test_sorted))
-      
-      plot <- ggplot(to_plot, aes(x = to_plot[,input$feature], y = ID, fill = Counts)) + 
+
+      plot <- ggplot(to_plot, aes(x = to_plot[,input$feature], y = ID, fill = Counts)) +
         xlab(input$feature) +
         geom_tile(color='black')+
         scale_fill_gradient(low = "white", high = "purple", limits = c(0,100))+
@@ -378,18 +386,18 @@ server <- function(input, output, session) {
               legend.text = element_text(size = 15),
               legend.title = element_text(size = 15),
               plot.title = element_text(size = 20))
-      
+
       if (my_tri != 3)
       {plot = plot+theme(axis.title.x = element_blank())}
-      
+
       return(plot)
-      
+
     })
-    
+
     ggarrange(plotlist = list_plots, nrow=length(list_plots),
               common.legend = TRUE, legend="right")
-    
-    
+
+
   })
   
 }
