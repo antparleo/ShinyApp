@@ -97,8 +97,8 @@ ui <- dashboardPage(
 
              # Alpha diversity metric
              selectizeInput('Specie',label = 'Select specie',
-                            choices = colnames(phylo_1e1),
-                            selected = colnames(phylo_1e1)[1:10],
+                            choices = phylo_specie,
+                            selected = phylo_specie[1:10],
                             multiple = TRUE)
     ),
     

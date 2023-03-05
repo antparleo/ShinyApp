@@ -337,7 +337,7 @@ server <- function(input, output, session) {
         print(my_feat)
 
         phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,
-                                      c(colnames(phylo_1e1),input$sample)] %>%
+                                      c(phylo_specie,input$sample)] %>%
           remove_rownames %>% column_to_rownames(var = input$sample)
 
         if(nrow(phylo_feat) > 0 ){

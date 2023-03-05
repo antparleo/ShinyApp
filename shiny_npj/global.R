@@ -1,5 +1,3 @@
-
-
 # Libraries ---------------------------------------------------------------
 
 library(tidyverse)
@@ -56,6 +54,9 @@ cst_alluvial <- read.csv('../Results/cst2alluvia.csv')
 # phylo_1e1$specimen <- rownames(phylo_1e1)
 
 load('../Results/heatmap_dfs.RData')
+phylo_specie <- grep(pattern = 'pt_.*',
+                     colnames(heatmap_dfs$specimen),
+                     value = T)
 
 # Create final metadata ---------------------------------------------------
 
@@ -152,8 +153,6 @@ umapSelection <- function(phylotypes_umap,sampleType){
   return(df)
   
 }
-
-colnames(phylo_1e1) <- make.unique(colnames(phylo_1e1), sep = '_')
 
 
 phyloSelection <- function(dfs,sampleType){
