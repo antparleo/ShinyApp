@@ -8,6 +8,41 @@ library(umap)
 library(RColorBrewer)
 library(stringr)
 library(reshape2)
+library(rintrojs)
+library(shinydashboard)
+library(ggcorrplot)
+library(shinyBS)
+library(ggalluvial)
+
+
+
+# Create help for the app -------------------------------------------------
+
+add_class <- function(x, class) {
+  x$attribs <- append(x$attribs, list(class = class))
+  x
+}
+
+steps_filters <- tibble::tribble(
+  ~element, ~intro,
+  NA, "Tutorial to use filters",
+  ".sample", "This filter allows observe all feature per patient or sample.",
+  ".type", "You can choose between all possible outcomes.",
+  ".metadata","In this tab, you can filter samples by age, project, pregnancy trimester or ethnicity.",
+  ".diversity","You can select the most appropiate diversity metrics for your study.",
+  ".composition","It allows to choose the type of phylotype/specie.",
+  ".btn_update","When parameters and filters are changes is reqquired to update the plots click on this button."
+)
+
+steps_plots <- tibble::tribble(
+  ~element, ~intro,
+  NA, "This a help to understand that shows each plot",
+  ".first_box", "All plots and tables are inside this boxes that can be collpased clicking on the right corner",
+  ".bpType", "It shows the frequency of samples or individuals per outcome selected. Inside the bars we can observeth freqeuncy of the demographic feature selected.",
+  ".PCrace","It shows the frequency by ethnicity showing the prorpotion of the selected feature.",
+  ".bpProject","It shows the frequency by project showing the proportion of the selected feature",
+  ".my_race","This table contains the ethnicities included in other.")
+
 
 # Load main tables --------------------------------------------------------
 

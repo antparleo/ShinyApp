@@ -1,6 +1,14 @@
 # Server
 
 server <- function(input, output, session) {
+  
+  
+  observeEvent(input$btn_info,
+               introjs(session,
+                       options = list(steps = steps_filters)))
+  observeEvent(input$btn_view1,
+               introjs(session,
+                       options = list(steps = steps_plots)))
 
   
   metadataType <- reactive({
@@ -12,7 +20,7 @@ server <- function(input, output, session) {
   
   
   
-  metadataInput <- reactive({
+  metadataInput <- eventReactive(input$update,{
     
     df <- metadataType() %>%
       filter((Age %in% input$Age) &
@@ -21,10 +29,10 @@ server <- function(input, output, session) {
                Race %in% input$Race &
                Trimester %in% input$trimester)
 
-  })
+  }, ignoreNULL = FALSE)
 
 
-  cstInput <- reactive({
+  cstInput <- eventReactive(input$update,{
     
    cst_alluvia2 <- cst_alluvial %>%
      filter((Age %in% input$Age) &
@@ -33,7 +41,11 @@ server <- function(input, output, session) {
               Race %in% input$Race &
               Trimester %in% input$trimester)
 
-  })
+  }, ignoreNULL = FALSE)
+  
+  
+  feature <- eventReactive(input$update,{input$feature},ignoreNULL = FALSE)
+  trimester <- eventReactive(input$update,{input$trimester},ignoreNULL = FALSE)
   
   
   # Barplot Outcome
@@ -41,10 +53,10 @@ server <- function(input, output, session) {
   output$bpType <- renderPlot({
     
     df <- metadataInput()
-    plot <- data.frame(table(df[,c('Type',input$feature)]))
+    plot <- data.frame(table(df[,c('Type',feature())]))
     
     ggplot(plot,
-                   aes(x = Type, fill = plot[,input$feature], y = Freq)) +
+                   aes(x = Type, fill = plot[,feature()], y = Freq)) +
               geom_bar(position = 'fill', stat = 'identity', color = 'black') +
               scale_fill_manual(labels=c("term" = "Term",
                                          "preterm" = "Preterm",
@@ -55,8 +67,8 @@ server <- function(input, output, session) {
                                          "Others" = "Others",
                                          "Unknown" = "Unknown",
                                          "White" = "White"
-              ),values = my_colors[[input$feature]]) +
-              labs(fill = input$feature, y = 'Frequency', x = '')+
+              ),values = my_colors[[feature()]]) +
+              labs(fill = feature(), y = 'Frequency', x = '')+
               theme_bw() + 
               theme(axis.text = element_text(size = 15, angle = 90),
                     axis.title = element_text(size = 25),
@@ -80,10 +92,10 @@ server <- function(input, output, session) {
   output$PCrace <- renderPlot({
     
     df <- metadataInput()
-    plot <- data.frame(table(df[,c('Race',input$feature)]))
+    plot <- data.frame(table(df[,c('Race',feature())]))
     
     ggplot(plot,
-                   aes(x = Race, fill = plot[,input$feature], y = Freq)) +
+                   aes(x = Race, fill = plot[,feature()], y = Freq)) +
               geom_bar(position = 'fill', stat = 'identity', color = 'black') +
               scale_fill_manual(labels=c("term" = "Term",
                                          "preterm" = "Preterm",
@@ -94,8 +106,8 @@ server <- function(input, output, session) {
                                          "Others" = "Others",
                                          "Unknown" = "Unknown",
                                          "White" = "White"),
-                                         values = my_colors[[input$feature]]) +
-              labs(fill = input$feature, y = 'Frequency', x = '')+
+                                         values = my_colors[[feature()]]) +
+              labs(fill = feature(), y = 'Frequency', x = '')+
               theme_bw() + 
               theme(axis.text = element_text(size = 15, angle = 90),
                     axis.title = element_text(size = 25),
@@ -115,10 +127,10 @@ server <- function(input, output, session) {
   output$bpProject <- renderPlot({
   
     df <- metadataInput()
-    plot <- data.frame(table(df[,c('project',input$feature)]))
+    plot <- data.frame(table(df[,c('project',feature())]))
     
     ggplot(plot,
-           aes(x = project, fill = plot[,input$feature], y = Freq)) +
+           aes(x = project, fill = plot[,feature()], y = Freq)) +
       geom_bar(position = 'fill', stat = 'identity', color = 'black') +
       scale_fill_manual(labels=c("term" = "Term",
                                  "preterm" = "Preterm",
@@ -129,8 +141,8 @@ server <- function(input, output, session) {
                                  "Others" = "Others",
                                  "Unknown" = "Unknown",
                                  "White" = "White"),
-                                 values = my_colors[[input$feature]]) +
-      labs(fill = input$feature, y = 'Frequency', x = '')+
+                                 values = my_colors[[feature()]]) +
+      labs(fill = feature(), y = 'Frequency', x = '')+
       theme_bw() + 
       theme(axis.text = element_text(size = 15),
             axis.title = element_text(size = 25),
@@ -140,11 +152,11 @@ server <- function(input, output, session) {
   })
   
   
-  diversityType <- reactive({
+  diversityType <- eventReactive(input$update,{
     
     df <- diversitySelection(diversity_all,input$sample)
     
-  })
+  }, ignoreNULL = FALSE)
   
   output$my_race <- renderUI(HTML(markdown(
     
@@ -166,43 +178,47 @@ server <- function(input, output, session) {
   # Pairplot diversity
   
  
-  output$cpDiversity <- renderPlot({
+  pairplot <- eventReactive(input$update,{
     
-   to_plot <- merge(diversityType(),
-                             metadataInput(),
-                             by=input$sample)
-
+    
+    to_plot <- merge(diversityType(),
+                     metadataInput(),
+                     by=input$sample)
+    
     ggpairs(data = to_plot, columns = input$metrics,
             aes(color = to_plot[,input$feature]),
             upper = list(continuous = wrap("cor", size = 6)))+
-       scale_fill_manual(values = my_colors[[input$feature]]) +
+      scale_fill_manual(values = my_colors[[input$feature]]) +
       scale_color_manual(values = my_colors[[input$feature]]) +
       theme_bw()+
       theme(strip.text.x = element_text(size = 20),
             strip.text.y = element_text(size = 20),
             legend.position = 'bottom')
     
-
-
-  })
+  }, ignoreNULL = FALSE)
+  
+  
+  output$cpDiversity <- renderPlot({
+    pairplot()
+})
   
   # Violin Plot diversity
   
-  output$vpDiversity <- renderPlot({
+  violinplot <- eventReactive(input$update,{
     
     md <- metadataInput()
-
+    
     diversity_all_long <- melt(diversityType(), 
-                              id.vars = input$sample,
-                              variable.name = 'Metrics',
-                              value.name = 'Score')
-   
+                               id.vars = input$sample,
+                               variable.name = 'Metrics',
+                               value.name = 'Score')
+    
     
     diver_md <- merge(x = md, y = diversity_all_long,
                       by = input$sample)
     
     diver_md <- diver_md[diver_md$Metrics%in%input$metrics,]
-
+    
     list_plot <- lapply(unique(diver_md[,'Metrics']), function(my_metric){
       to_plot <- diver_md[diver_md$Metrics == my_metric,]
       ggplot(data = to_plot,
@@ -216,12 +232,17 @@ server <- function(input, output, session) {
               axis.title = element_text(size = 25),
               legend.text = element_text(size = 12),
               legend.title = element_text(size = 20))
-
+      
     })
-
+    
     ggarrange(plotlist = list_plot, ncol=length(list_plot),
               common.legend = TRUE, legend="right")
-
+    
+  }, ignoreNULL = FALSE)
+  
+  
+  output$vpDiversity <- renderPlot({
+    violinplot()
   })
   
   
@@ -244,23 +265,23 @@ server <- function(input, output, session) {
 
 
   # CST alluvial plot
-
-  output$apCST <- renderPlot({
-
-   cst_alluvia2 <- cstInput()
-   values <- unique(cst_alluvia2[,input$feature])
-
+  
+  cstplot <- eventReactive(input$update,{
+    
+    cst_alluvia2 <- cstInput()
+    values <- unique(cst_alluvia2[,input$feature])
+    
     list_df <- lapply(values, function(x){
-
+      
       df <- cst_alluvia2[cst_alluvia2[,input$feature] == x,]
-
+      
       to_plot <- df[,c("Trimester","participant_id","CST")]
       df_freq <- to_plot %>% group_by(participant_id,Trimester,CST) %>% summarise(Freq = n())
       df_freq <- df_freq %>%
         group_by(Trimester) %>%
         mutate(pct = Freq / sum(Freq)*100)
-
-
+      
+      
       p <- ggplot(df_freq,
                   aes(x = Trimester, stratum = CST, alluvium = participant_id,
                       fill = CST, label = CST, y = pct)) +
@@ -274,13 +295,17 @@ server <- function(input, output, session) {
         theme(legend.position = "none", text = element_text(size = 20),
               plot.title = element_text(hjust = 0.5))
       return(p)
-
+      
     })
-
-
+    
+    
     ggarrange(plotlist = list_df, ncol=length(list_df),
               common.legend = TRUE, legend="right")
+    
+  }, ignoreNULL = FALSE)
 
+  output$apCST <- renderPlot({
+    cstplot()
   })
 
   
@@ -294,65 +319,69 @@ server <- function(input, output, session) {
   
   # UMAP phylotype plot
 
-  output$upPhylo <- renderPlot({
-
+  umapPlot <- eventReactive(input$update,{
+    
     toplot <- umapInput()
     ggplot(toplot, aes(x = UMAP1,
-                                y = UMAP2,
+                       y = UMAP2,
                        color = toplot[,input$feature]))+
-              geom_point(size = 4) +
-              scale_color_manual(values = my_colors[[input$feature]])+
-              labs(x = "UMAP1",
-                   y = "UMAP2",
-                   color = "")+
-              theme_bw() +
+      geom_point(size = 4) +
+      scale_color_manual(values = my_colors[[input$feature]])+
+      labs(x = "UMAP1",
+           y = "UMAP2",
+           color = "")+
+      theme_bw() +
       theme(legend.position = "bottom",text = element_text(size = 20),
             legend.text = element_text(size=15)) +
       guides(fill=guide_legend(nrow=3,byrow=TRUE))
-
-
+    
+  }, ignoreNULL = FALSE)
+  
+  output$upPhylo <- renderPlot({
+    umapPlot()
   })
   
   
   phyloType <- reactive({
     phyloSelection(heatmap_dfs,input$sample)
-  }) %>% bindCache(input$sample)
+  }) %>% bindCache(input$sample) %>% bindEvent(input$update,ignoreNULL = FALSE)
 
 
   # Heatmap phylotype plot
-
-  output$hmPhylo <- renderPlot({
-
+  
+  
+  plotphylo <- eventReactive(input$update,{
+    
     metadata <- metadataInput()
-
-    list_plots <- lapply(sort(input$trimester), function(my_tri){
-
+    
+    list_plots <- lapply(sort(trimester()), function(my_tri){
+      
       metadata_trimester <- metadata[metadata$Trimester == my_tri,]
       phylo_trimester <- merge(phyloType(), metadata_trimester[,c(input$sample,input$feature)],
                                by = input$sample)
-
+      
       test <- do.call('cbind',lapply(sort(unique(metadata_trimester[,input$feature])), function(my_feat){
-
+        
         # print(my_feat)
-
+        
         phylo_feat <- phylo_trimester[phylo_trimester[,input$feature] == my_feat,
                                       c(phylo_specie,input$sample)] %>%
           remove_rownames %>% column_to_rownames(var = input$sample)
-
+        
         if(nrow(phylo_feat) > 0 ){
-
+          
           counts <- as.data.frame(apply(phylo_feat>0,2,sum) / nrow(phylo_feat))
           colnames(counts) <- my_feat
         } else{
-
+          
           warning(paste0('No information for', my_feat, collapse = ' '))
-
+          
         }
-
+        
         return(counts)
-
+        
       }))
-
+      
       if(ncol(test) == 1) {
         
         id <- colnames(test)
@@ -364,12 +393,12 @@ server <- function(input, output, session) {
         test_sorted <- test[names(sort(apply(test[input$Specie,],1,mean), decreasing = F)),]
         test_sorted$ID <- rownames(test_sorted)
       }
-
+      
       to_plot <- melt(test_sorted, id.vars = 'ID') %>% rename(!!input$feature := variable, Counts = value) %>%
         arrange(Counts)
       to_plot$Counts <- round(to_plot$Counts*100,0)
       to_plot$ID <- factor(to_plot$ID,levels = rownames(test_sorted))
-
+      
       plot <- ggplot(to_plot, aes(x = to_plot[,input$feature], y = ID, fill = Counts)) +
         xlab(input$feature) +
         geom_tile(color='black')+
@@ -384,18 +413,23 @@ server <- function(input, output, session) {
               legend.text = element_text(size = 15),
               legend.title = element_text(size = 15),
               plot.title = element_text(size = 20))
-
+      
       if (my_tri != 3)
       {plot = plot+theme(axis.title.x = element_blank())}
-
+      
       return(plot)
-
+      
     })
-
+    
     ggarrange(plotlist = list_plots, nrow=length(list_plots),
               common.legend = TRUE, legend="right")
+    
+  }, ignoreNULL = FALSE)
+  
 
-
+  output$hmPhylo <- renderPlot({
+    plotphylo()
   })
+  
   
 }

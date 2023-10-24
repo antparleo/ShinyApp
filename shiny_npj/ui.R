@@ -1,11 +1,7 @@
-library(shinydashboard)
-library(ggcorrplot)
-library(shinyBS)
-library(ggalluvial)
-
 ui <- dashboardPage(
   skin = "purple",
   title = "Vaginal ",
+  
   dashboardHeader(
     title = 'VMAP: Vaginal Microbiome Atlas in Pregnancy',
     titleWidth = 500
@@ -20,14 +16,14 @@ ui <- dashboardPage(
                   choices =
                     c('Sample' = 'specimen',
                       'Individual' = 'participant_id'),
-                  selected = 'participant_id'),
+                  selected = 'participant_id') %>% add_class("sample"),
       
       checkboxGroupInput("type", "Choose the Outcome Category",
                          choices =
                            c('Term (>= 37 weeks gestational age (GA))' = 'term',
                              'Preterm (< 37 weeks GA)' = 'preterm',
                              'Early Preterm (< 32 weeks GA)' = 'early'),
-                         selected = c('term','preterm','early')),
+                         selected = c('term','preterm','early')) %>% add_class("type"),
       selectInput("feature", "Select a demogrpahic feature to filter by:",
                   choices =
                     c('Trimester' = 'Trimester',
@@ -35,7 +31,7 @@ ui <- dashboardPage(
                       'Outcome' = 'Type',
                       'Age' = 'Age',
                       'Project' = 'project'),
-                  selected = 'Type'),
+                  selected = 'Type') %>% add_class('feature'),
       
       
     menuItem("Metadata information", icon = icon("th"), tabName = "metadata",
@@ -80,7 +76,7 @@ ui <- dashboardPage(
                                                           'Other',
                                                           'Black or African American',
                                                           'Unknown')
-             )),
+             )) %>% add_class("metadata"),
     
     menuItem("Alpha diversity", icon = icon("bacteria", class = NULL,
                                             lib = "font-awesome"),
@@ -100,7 +96,7 @@ ui <- dashboardPage(
                                          'unrooted_pd','quadratic'),
                             multiple = TRUE)
              # actionButton(inputId = "goButton", label = "Start Analysis")
-    ),
+    )%>% add_class("diversity"),
     
     menuItem("Composition", icon = icon("network-wired", class = NULL,
                                             lib = "font-awesome"),
@@ -111,15 +107,20 @@ ui <- dashboardPage(
                             choices = phylo_specie,
                             selected = phylo_specie[1:10],
                             multiple = TRUE)
-    ),
+    ) %>% add_class("composition"),
     
-    submitButton(text = "Update plots", icon = icon("play", class = NULL,
+    actionButton("update","Update plots", icon = icon("play", class = NULL,
                                                     lib = "font-awesome"),
-                 width = 230)
+                 width = 200) %>% add_class("btn_update"),
+    
+    actionButton("btn_info", "Help filters",
+                 style = "background-color: #D3D3D3;") %>% add_class("btn_info"),
+    actionButton("btn_view1", "Help Plots",
+                 style = "background-color: #D3D3D3;") %>% add_class("btn_view1")
   
   )),
   dashboardBody(
-    
+    introjsUI(),
     fluidRow(
     
     # Barplot per Type
@@ -128,15 +129,15 @@ ui <- dashboardPage(
       width = 3,
       title = "% of Samples by outcome", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
-      plotOutput("bpType", height = 500, width = 350)
-    ),
+      plotOutput("bpType", height = 500, width = 350) %>% add_class("bpType"),
+    ) %>% add_class("first_box"),
     
-    # Piechart Racial
+    # Barplot Race
     
     box(width = 4 ,
       title = "% of Samples by Race", solidHeader = TRUE,
       collapsible = TRUE,background = "purple",
-      plotOutput("PCrace", height = 500)
+      plotOutput("PCrace", height = 500) %>% add_class("PCrace")
     ),
     
     # Barplot per project
@@ -144,7 +145,7 @@ ui <- dashboardPage(
     box(width = 5,
       title = "% of Samples by Project", solidHeader = TRUE,
       collapsible = TRUE, background = "purple",
-      plotOutput("bpProject", height = 500)
+      plotOutput("bpProject", height = 500) %>% add_class("bpProject")
     ),
     
     # Legend for Race
@@ -152,7 +153,7 @@ ui <- dashboardPage(
     box(width = 12 ,
         title = "Legend for Race", solidHeader = TRUE,
         collapsible = TRUE,background = "purple",
-        uiOutput('my_race')
+        uiOutput('my_race') %>% add_class("my_race")
     ),
     
     # Legend for project
