@@ -5,10 +5,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$btn_info,
                introjs(session,
-                       options = list(steps = steps_filters)))
-  observeEvent(input$btn_view1,
-               introjs(session,
-                       options = list(steps = steps_plots)))
+                       options = list(steps = steps_tutorial)))
 
   
   metadataType <- reactive({
@@ -172,7 +169,9 @@ server <- function(input, output, session) {
     
   )))
   
-  output$studies <- renderTable(studies)
+  # output$studies <- renderTable(studies)
+  output$studies <- renderUI(includeHTML(path = 'studies.html'))
+  
   
   
   # Pairplot diversity
@@ -248,20 +247,35 @@ server <- function(input, output, session) {
   
   # Legend text
   
-  output$my_text <- renderUI(HTML(markdown(
+  output$my_text <- renderUI(HTML(
     
+    markdown(' #### Diversity Metrics'),
     
-    ' #### Diversity Metrics
+    '<style>
+      a {
+        color:#FFFFFF;
+      }
+    </style>',
     
-      - Balance weighted phylogenetic diversity (bwpd)
-      - Inverse Simpson (inv_simpson)
-      - Phylogenetic entropy (phylo_entropy)
-      - Quadratic (quadratic)
-      - Rooted phylogenetic diversity (rooted_pd)
-      - Shannon (shannon)
-      - Unrooted phylogenetic diversity (unrooted_pd)'
+    '<ul>
+      <li><a href="https://doi.org/10.7717%2Fpeerj.157" target="_blank">Balance weighted phylogenetic diversity (bwpd)</a> </li>
+      <li><a href="https://en.wikipedia.org/wiki/Diversity_index#Simpson_index" target="_blank">Inverse Simpson (inv_simpson)</a></li>
+      <li><a href="https://www.google.es" target="_blank">Phylogenetic entropy (phylo_entropy)</a></li>
+      <li><a href="https://www.google.es" target="_blank">Quadratic (quadratic)</a></li>
+      <li><a href="https://www.google.es" target="_blank">Rooted phylogenetic diversity (rooted_pd)</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Diversity_index#Shannon_index" target="_blank">Shannon (shannon)</a></li>
+      <li><a href="https://www.google.es" target="_blank">Unrooted phylogenetic diversity (unrooted_pd)</a></li>
+      </ul>'
     
-  )))
+  ))
+  
+  # '- [Balance weighted phylogenetic diversity (bwpd)](https://www.google.es)
+  #     - Inverse Simpson (inv_simpson)
+  #     - Phylogenetic entropy (phylo_entropy)
+  #     - Quadratic (quadratic)
+  #     - Rooted phylogenetic diversity (rooted_pd)
+  #     - Shannon (shannon)
+  #     - Unrooted phylogenetic diversity (unrooted_pd)'
 
 
   # CST alluvial plot

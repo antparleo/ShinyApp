@@ -23,25 +23,47 @@ add_class <- function(x, class) {
   x
 }
 
-steps_filters <- tibble::tribble(
+steps_tutorial <- tibble::tribble(
   ~element, ~intro,
-  NA, "Tutorial to use filters",
-  ".sample", "This filter allows observe all feature per patient or sample.",
-  ".type", "You can choose between all possible outcomes.",
-  ".metadata","In this tab, you can filter samples by age, project, pregnancy trimester or ethnicity.",
-  ".diversity","You can select the most appropiate diversity metrics for your study.",
-  ".composition","It allows to choose the type of phylotype/specie.",
-  ".btn_update","When parameters and filters are changes is reqquired to update the plots click on this button."
+  NA, "Welcome to VMAP: This tutorial will you show all possible features of this app. Fristly, we begin with the filters.",
+  ".sample", "This filter allows to observe all features per individual or sample since different samples were taken from the same individual.",
+  ".type", "You can also choose between all possible outcomes (Term, Pre-term or early pre-term.)",
+  ".metadata","In this tab, you will find different filters for age, project, pregnancy trimester or ethnicity.",
+  ".diversity","Moreover, you can select your most appropiate diversity metric.",
+  ".composition","It allows to choose the type of phylotype/specie that you want to observe. Try to write down the name inside the box.",
+  NA, "Now, we are going to explain what represents each chart.",
+  ".first_box", "First, It is worth to noting that all plots and tables are inside purple boxes that can be collpased clicking on the right corner. This will allow to hide those plots that you do not need.",
+  ".bpType", "This barplot shows the frequency of samples or individuals per outcome selected. Inside the bars we can also observe the frequency of the demographic feature selected.",
+  ".PCrace","Likely previous one, it shows the frequency, but by ethnicity.",
+  ".bpProject","Finally, in this barplot frequency is shown by projects.",
+  ".my_race","This table contains the different ethnicities included in the label 'Other'.",
+  ".my_project","Here, We observed the information related to each project. You can click on the 'Accession ID' in order to read more about them.",
+  ".cpDiversity","Plot represents the pairwise correlations between diversity metrics as well as its respective distribution according to the feature selected.",
+  ".vpDiversity","Violin plots showing the distribution according to the feature selected.",
+  ".my_text","The description of each diversity metrics can be found on this table",
+  ".apCST","This chart shows an alluvial plot, where we can observe the different proportions of CST across trimesters and divided according to the feature selected.",
+  ".hmphylo","It represents a heatmap of the different type of phylotypes/species depending on the trimester and the feature selected.",
+  ".upPhylo","This final chart represents the complexity of microbiome data in two dimensions where points are coloured by the feature selected.",
+  ".btn_update","IMPORTANT: When parameters and filters have changed, it is required to update the plots clicking on this button.",
 )
 
-steps_plots <- tibble::tribble(
-  ~element, ~intro,
-  NA, "This a help to understand that shows each plot",
-  ".first_box", "All plots and tables are inside this boxes that can be collpased clicking on the right corner",
-  ".bpType", "It shows the frequency of samples or individuals per outcome selected. Inside the bars we can observeth freqeuncy of the demographic feature selected.",
-  ".PCrace","It shows the frequency by ethnicity showing the prorpotion of the selected feature.",
-  ".bpProject","It shows the frequency by project showing the proportion of the selected feature",
-  ".my_race","This table contains the ethnicities included in other.")
+# steps_plots <- tibble::tribble(
+#   ~element, ~intro,
+#   NA, "Now, we are going to explain what represents each chart.",
+#   ".first_box", "First, It is worth to noting that all plots and tables are inside purple boxes that can be collpased clicking on the right corner",
+#   ".bpType", "It shows the frequency of samples or individuals per outcome selected. Inside the bars we can observe the frquency of the demographic feature selected.",
+#   ".PCrace","It shows the frequency by ethnicity showing the prorpotion of the selected feature.",
+#   ".bpProject","It shows the frequency by project showing the proportion of the selected feature",
+#   ".my_race","This table contains the ethnicities included in other catgory.",
+#   ".my_project","Likewise, on this table all information related to the different datasets used can be observed.",
+#   ".cpDiversity","Plot represents the pairwise correlations between diversity metrics as well as its respective distribution according to the feature selected.",
+#   "vpDiversity","Violin plots showing the distribution according to the feature selected.",
+#   ".my_text","The description of each diversity metrics can be found on this table",
+#   ".apCST","This chart shows an alluvial plot, where can observe the different proportions of CST across trimesters.",
+#   ".hmphylo","It represents a heatmap of the different type of phylotypes/species across time according to the feature selected.",
+#   ".upPhylo","This final chart represents the complexity of microbiome data in two dimensions where points are coloured by the feature selected."
+#   
+#   )
 
 
 # Load main tables --------------------------------------------------------

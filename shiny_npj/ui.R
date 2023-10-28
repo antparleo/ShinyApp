@@ -113,10 +113,8 @@ ui <- dashboardPage(
                                                     lib = "font-awesome"),
                  width = 200) %>% add_class("btn_update"),
     
-    actionButton("btn_info", "Help filters",
-                 style = "background-color: #D3D3D3;") %>% add_class("btn_info"),
-    actionButton("btn_view1", "Help Plots",
-                 style = "background-color: #D3D3D3;") %>% add_class("btn_view1")
+    actionButton("btn_info", "Tutorial",
+                 style = "background-color: #EEDBBD;") %>% add_class("btn_info")
   
   )),
   dashboardBody(
@@ -161,7 +159,7 @@ ui <- dashboardPage(
     box(width = 12 ,
         title = "Legend for Project", solidHeader = TRUE,
         collapsible = TRUE,background = "purple",
-        tableOutput('studies')
+        tableOutput('studies') %>% add_class("my_project")
     ),
     
     
@@ -171,7 +169,7 @@ ui <- dashboardPage(
     box(width = 12,
         title = "Diversity Measures: Correlation Between Measures", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
-        plotOutput("cpDiversity", height = 800)
+        plotOutput("cpDiversity", height = 800) %>% add_class("cpDiversity")
     ),
     
     # Violin Plot diversity
@@ -179,7 +177,7 @@ ui <- dashboardPage(
     box(width = 12,
         title = "Diversity Measures: Box Plot Stratified Visualization", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
-        plotOutput("vpDiversity", height = 400)
+        plotOutput("vpDiversity", height = 400) %>% add_class("vpDiversity")
     ),
     
     # Legend for diversity
@@ -187,7 +185,7 @@ ui <- dashboardPage(
     box(width = 12 ,
         title = "Legend for Diversity Metrics", solidHeader = TRUE,
         collapsible = TRUE,background = "purple",
-        uiOutput('my_text')
+        uiOutput('my_text') %>% add_class("my_text")
     ),
     
     
@@ -196,7 +194,7 @@ ui <- dashboardPage(
     box(width = 12,
         title = "VALENCIA Community State Types (CST) by Trimester", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
-        plotOutput("apCST", height = 500)
+        plotOutput("apCST", height = 500) %>% add_class("apCST")
     ),
     
     
@@ -206,7 +204,7 @@ ui <- dashboardPage(
     box(width = 12,
         title = "Heatmap of Taxonomical Features", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
-        plotOutput("hmPhylo", height = 800)
+        plotOutput("hmPhylo", height = 800) %>% add_class("hmphylo")
     ),
     
     # UMAP Phylotypes
@@ -214,7 +212,7 @@ ui <- dashboardPage(
     box(width = 12,
         title = "Dimensionality Reduction Plot (UMAP) Based on Phylotypes", solidHeader = TRUE,
         collapsible = TRUE, background = "purple",
-        plotOutput("upPhylo", height = 900)
+        plotOutput("upPhylo", height = 900) %>% add_class("upPhylo")
     ),
     
   ))
